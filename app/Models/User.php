@@ -18,13 +18,13 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        // 'name', // HAPUS INI JIKA KOLOM 'name' TIDAK ADA DI TABEL ANDA
-        'username', // PASTIKAN ADA
+        'nama_lengkap', 
+        'username',
         'email',
         'password',
-        'role', // PASTIKAN ADA
-        'jabatan', // PASTIKAN ADA
-        'status', // PASTIKAN ADA
+        'role',
+        'jabatan',
+        'status',
     ];
 
     /**

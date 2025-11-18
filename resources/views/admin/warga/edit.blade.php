@@ -58,10 +58,10 @@
 
                     {{-- Alamat --}}
                     <div class="mt-4">
-                        <label for="alamat" class="block text-sm font-medium text-gray-700">Alamat (Opsional)</label>
-                        <textarea name="alamat" id="alamat" rows="3"
-                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ old('alamat', $warga->alamat) }}</textarea>
-                        @error('alamat') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <label for="alamat_terakhir" class="block text-sm font-medium text-gray-700">Alamat (Opsional)</label>
+                        <textarea name="alamat_terakhir" id="alamat_terakhir" rows="3"
+                                  class="mt-1 block w-full ...">{{ old('alamat_terakhir', $warga->alamat_terakhir) }}</textarea>
+                        @error('alamat_terakhir') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Tombol Aksi --}}

@@ -24,18 +24,15 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-            // HAPUS BARIS INI JIKA TABEL 'users' ANDA TIDAK MEMILIKI KOLOM 'name'
-            // 'name' => fake()->name(), 
-            // Ini adalah nama lengkap yang diminta oleh error
-            'nama_lengkap' => fake()->name(), // <<< TAMBAHKAN BARIS INI
-            'username' => fake()->unique()->userName(), // Pastikan ini ada dan sesuai
+            'nama_lengkap' => fake()->name(), 
+            'username' => fake()->unique()->userName(), 
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'role' => 'warga',
-            'jabatan' => fake()->jobTitle(), // Pastikan ini ada dan sesuai
-            'status' => 'aktif', // Pastikan ini ada dan sesuai
+            'role' => 'petugas_layanan', 
+            'jabatan' => fake()->jobTitle(), 
+            'status' => 'aktif', 
         ];
     }
 

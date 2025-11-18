@@ -1,57 +1,148 @@
 <x-public-layout>
-    <div class="bg-white px-6 py-16 sm:py-24 lg:px-8">
-        <div class="mx-auto max-w-3xl">
-            <nav class="flex mb-4" aria-label="Breadcrumb">
-                <ol role="list" class="flex items-center space-x-2">
-                    <li><a href="{{ route('beranda') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Beranda</a></li>
-                    <li>
-                        <svg class="h-5 w-5 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                        </svg>
-                    </li>
-                    <li><a href="{{ route('pengumuman.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Pengumuman</a></li>
-                </ol>
-            </nav>
+    
+    {{-- =============================================== --}}
+    {{-- <<< HEADER BERITA (HIJAU TUA) >>> --}}
+    {{-- =============================================== --}}
+    <div class="relative bg-primary-900 py-16 sm:py-24 overflow-hidden">
+        {{-- Dekorasi Background --}}
+        <div class="absolute inset-0 overflow-hidden">
+             <svg class="absolute left-[max(50%,25rem)] top-0 h-[64rem] w-[128rem] -translate-x-1/2 stroke-primary-700 [mask-image:radial-gradient(64rem_64rem_at_top,white,transparent)]" aria-hidden="true">
+                <defs>
+                    <pattern id="e813992c-7d03-4cc4-a2bd-151760b470a0" width="200" height="200" x="50%" y="-1" patternUnits="userSpaceOnUse">
+                        <path d="M100 200V.5M.5 .5H200" fill="none" />
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" stroke-width="0" fill="url(#e813992c-7d03-4cc4-a2bd-151760b470a0)" />
+            </svg>
+        </div>
 
-            <div class="flex items-center gap-x-4 text-sm">
-                <time datetime="{{ $pengumuman->tanggal_publikasi }}" class="text-gray-500">
-                    {{ \Carbon\Carbon::parse($pengumuman->tanggal_publikasi)->translatedFormat('d F Y') }}
-                </time>
-                <span class="relative z-10 rounded-full bg-blue-50 px-3 py-1.5 font-medium text-blue-700">
-                    {{ $pengumuman->kategori }}
-                </span>
+        <div class="relative mx-auto max-w-3xl px-6 lg:px-8 text-center">
+            {{-- Breadcrumbs Mini --}}
+            <div class="flex justify-center items-center gap-x-2 text-sm text-primary-200 mb-6">
+                <a href="{{ route('pengumuman.index') }}" class="hover:text-white transition-colors">Berita</a>
+                <svg viewBox="0 0 2 2" width="3" height="3" aria-hidden="true" class="fill-current"><circle cx="1" cy="1" r="1" /></svg>
+                <span>{{ $pengumuman->kategori }}</span>
             </div>
-            
-            <h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+
+            <h1 class="text-3xl font-bold tracking-tight text-white sm:text-5xl leading-tight">
                 {{ $pengumuman->judul }}
             </h1>
-
-            <div class="mt-8 aspect-[16/9] w-full rounded-2xl bg-gray-200 object-cover">
+            
+            <div class="mt-6 flex items-center justify-center gap-x-4 text-sm text-primary-200">
+                <div class="flex items-center gap-x-2">
+                    <svg class="h-5 w-5 text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <time datetime="{{ $pengumuman->tanggal_publikasi->toDateString() }}">
+                        {{ $pengumuman->tanggal_publikasi->translatedFormat('d F Y') }}
+                    </time>
                 </div>
-
-            <div class="mt-10 max-w-2xl mx-auto">
-                <div class="prose prose-lg prose-indigo max-w-none">
-                    {!! $pengumuman->isi_konten !!}
+                <svg viewBox="0 0 2 2" width="3" height="3" aria-hidden="true" class="fill-current"><circle cx="1" cy="1" r="1" /></svg>
+                <div class="flex items-center gap-x-2">
+                    <svg class="h-5 w-5 text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Admin Kelurahan</span>
                 </div>
             </div>
+        </div>
+    </div>
 
-            @if ($pengumuman->file_pdf_path)
-                <div class="mt-12 text-center">
-                    <a href="{{ Storage::url($pengumuman->file_pdf_path) }}" target="_blank"
-                       class="inline-flex items-center gap-x-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11.25a.75.75 0 00-1.5 0v4.59L7.3 9.7a.75.75 0 00-1.1 1.02l3.25 3.5a.75.75 0 001.1 0l3.25-3.5a.75.75 0 10-1.1-1.02l-1.95 2.1V6.75z" clip-rule="evenodd" />
+    {{-- =============================================== --}}
+    {{-- <<< KONTEN BERITA >>> --}}
+    {{-- =============================================== --}}
+    <div class="bg-white py-16 sm:py-24">
+        <div class="mx-auto max-w-3xl px-6 lg:px-8">
+            
+            {{-- Gambar Utama (Featured Image) --}}
+            @if($pengumuman->featured_image)
+                <div class="mb-10 rounded-2xl overflow-hidden shadow-lg ring-1 ring-gray-900/5">
+                    <img src="{{ Storage::url($pengumuman->featured_image) }}" 
+                         alt="{{ $pengumuman->judul }}" 
+                         class="w-full object-cover h-auto max-h-[500px]">
+                </div>
+            @endif
+
+            {{-- Isi Konten (Rich Text) --}}
+            {{-- Class 'prose' dari Tailwind Typography plugin akan otomatis mempercantik HTML dari Trix --}}
+            <article class="prose prose-lg prose-green mx-auto text-gray-600">
+                {!! $pengumuman->isi_konten !!}
+            </article>
+
+            {{-- Tombol Download PDF (Jika Ada) --}}
+            @if($pengumuman->file_pdf_path)
+                <div class="mt-12 p-6 bg-primary-50 rounded-xl border border-primary-100 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="h-8 w-8 text-red-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
-                        Link Download: Unduh Dokumen Resmi (PDF)
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-900">Dokumen Lampiran</h4>
+                            <p class="text-xs text-gray-500">Unduh dokumen resmi terkait pengumuman ini.</p>
+                        </div>
+                    </div>
+                    <a href="{{ Storage::url($pengumuman->file_pdf_path) }}" target="_blank"
+                       class="inline-flex items-center rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-primary-700 shadow-sm ring-1 ring-inset ring-primary-300 hover:bg-primary-50 transition-colors">
+                        <svg class="h-5 w-5 mr-2 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download PDF
                     </a>
                 </div>
             @endif
 
-            <div class="mt-16 border-t border-gray-200 pt-8 text-center">
-                <a href="{{ route('pengumuman.index') }}" class="text-sm font-semibold text-blue-600 hover:text-blue-500">
-                    &larr; Kembali ke Daftar Pengumuman
+            {{-- Tombol Share / Kembali --}}
+            <div class="mt-16 border-t border-gray-200 pt-8 flex justify-between items-center">
+                <a href="{{ route('pengumuman.index') }}" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                    &larr; Kembali ke Daftar Berita
                 </a>
+                {{-- (Opsional) Tombol Share Media Sosial bisa ditambahkan di sini --}}
             </div>
         </div>
     </div>
+
+    {{-- =============================================== --}}
+    {{-- <<< BERITA TERKAIT (3 TERBARU) >>> --}}
+    {{-- =============================================== --}}
+    @if(isset($beritaTerkait) && $beritaTerkait->count() > 0)
+    <div class="bg-gray-50 py-16 sm:py-24">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl text-center mb-12">
+                <h2 class="text-2xl font-bold tracking-tight text-gray-900">Berita Lainnya</h2>
+            </div>
+            <div class="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-12 border-t border-gray-200 pt-12 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+                @foreach ($beritaTerkait as $item)
+                    <article class="flex flex-col items-start justify-between">
+                        <div class="relative w-full">
+                            @if($item->featured_image)
+                                <img src="{{ Storage::url($item->featured_image) }}" alt="{{ $item->judul }}" class="aspect-[16/9] w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
+                            @else
+                                <div class="aspect-[16/9] w-full rounded-2xl bg-gray-200 flex items-center justify-center text-gray-400">
+                                    <svg class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.01.01" /></svg>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="max-w-xl">
+                            <div class="mt-6 flex items-center gap-x-4 text-xs">
+                                <time datetime="{{ $item->tanggal_publikasi->toDateString() }}" class="text-gray-500">
+                                    {{ $item->tanggal_publikasi->translatedFormat('d M Y') }}
+                                </time>
+                                <span class="relative z-10 rounded-full bg-primary-50 px-3 py-1.5 font-medium text-primary-700">{{ $item->kategori }}</span>
+                            </div>
+                            <div class="group relative">
+                                <h3 class="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-primary-600">
+                                    <a href="{{ route('pengumuman.show', $item->slug) }}">
+                                        <span class="absolute inset-0"></span>
+                                        {{ $item->judul }}
+                                    </a>
+                                </h3>
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
 </x-public-layout>

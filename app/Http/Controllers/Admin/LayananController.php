@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Log;      // <<< TAMBAHKAN INI (opsional, untuk e
 
 class LayananController extends Controller
 {
+    // BENAR
+    public function __construct()
+    {
+        // Gunakan middleware 'can' agar dijalankan pada waktu yang tepat
+        $this->middleware('can:kelola-sistem'); 
+    }
+    
     /**
      * Display a listing of the resource.
      *
@@ -163,12 +170,9 @@ class LayananController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    // <<< PERBAIKI DI SINI: Ganti $id menjadi Layanan $layanan >>>
+    public function update(Request $request, Layanan $layanan)
     {
         // 1. Validasi data (sama seperti store)
         $validatedData = $request->validate([
@@ -193,6 +197,7 @@ class LayananController extends Controller
             DB::beginTransaction();
 
             // 2. Update data utama di tabel 'layanan'
+            //    (Sekarang $layanan sudah menjadi objek yang benar)
             $layanan->update([
                 'nama_layanan' => $validatedData['nama_layanan'],
                 'deskripsi' => $validatedData['deskripsi'],
@@ -211,20 +216,18 @@ class LayananController extends Controller
             foreach ($validatedData['dokumen_wajib'] as $deskripsiDokumen) {
                 $dokumenWajibData[] = [
                     'deskripsi_dokumen' => $deskripsiDokumen,
-                    'created_at' => now(), 'updated_at' => now(),
                 ];
             }
-            $layanan->dokumenWajib()->createMany($dokumenWajibData); // Gunakan createMany
+            $layanan->dokumenWajib()->createMany($dokumenWajibData);
 
             // 5. Buat ulang relasi 'Alur Proses'
             $alurProsesData = [];
             foreach ($validatedData['alur_proses'] as $deskripsiAlur) {
                 $alurProsesData[] = [
                     'deskripsi_alur' => $deskripsiAlur,
-                    'created_at' => now(), 'updated_at' => now(),
                 ];
             }
-            $layanan->alurProses()->createMany($alurProsesData); // Gunakan createMany
+            $layanan->alurProses()->createMany($alurProsesData);
 
             DB::commit();
 
@@ -242,12 +245,24 @@ class LayananController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    // <<< PERBAIKI DI SINI JUGA: Ganti $id menjadi Layanan $layanan >>>
+    public function destroy(Layanan $layanan)
     {
-        //
+        try {
+            $namaLayanan = $layanan->nama_layanan;
+            
+            // Karena migrasi kita sudah 'onDelete('cascade')',
+            // menghapus $layanan akan otomatis menghapus relasi.
+            $layanan->delete();
+
+            return redirect()->route('admin.layanan.index')
+                             ->with('success', "Layanan '$namaLayanan' berhasil dihapus.");
+                             
+        } catch (\Exception $e) {
+            Log::error('Gagal hapus layanan: ' . $e->getMessage());
+            return redirect()->route('admin.layanan.index')
+                             ->with('error', 'Gagal menghapus layanan. Kemungkinan layanan ini masih terkait dengan data booking.');
+        }
     }
 }

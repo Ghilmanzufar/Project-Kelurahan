@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Auth; // Import Auth untuk mencatat siapa yang me
 
 class BookingController extends Controller
 {
+    public function __construct()
+    {
+        // Ganti authorize menjadi middleware can
+        $this->middleware('can:kelola-berkas');
+    }
+    
     /**
      * Menampilkan daftar booking yang perlu dikonfirmasi (dengan filter baru).
      */

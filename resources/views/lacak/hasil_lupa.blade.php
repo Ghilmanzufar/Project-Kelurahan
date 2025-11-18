@@ -1,84 +1,82 @@
 <x-public-layout>
-    <div class="bg-gray-50 py-16">
-        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    {{-- Header Section dengan Background Hijau Muda --}}
+    <div class="bg-primary-50 py-12">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8 text-center">
+            <h1 class="text-3xl font-bold tracking-tight text-primary-900 sm:text-4xl">Riwayat Pengajuan Anda</h1>
+            <p class="mt-4 text-lg leading-8 text-primary-700">
+                Halo, <strong>{{ $warga->nama_lengkap }}</strong>. Berikut adalah daftar pengajuan layanan yang pernah Anda buat.
+            </p>
+        </div>
+    </div>
 
+    <div class="bg-white py-12 sm:py-16">
+        <div class="mx-auto max-w-4xl px-6 lg:px-8">
+            
             {{-- Breadcrumbs --}}
-            <nav class="flex mb-8" aria-label="Breadcrumb">
+            <nav class="flex mb-8 justify-center" aria-label="Breadcrumb">
                 <ol role="list" class="flex items-center space-x-2">
-                    <li><a href="{{ route('beranda') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Beranda</a></li>
-                    <li>
-                        <svg class="h-5 w-5 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                        </svg>
-                    </li>
-                    <li><a href="{{ route('lacak.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Lacak Pengajuan</a></li>
-                    <li>
-                        <svg class="h-5 w-5 flex-shrink-0 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
-                        </svg>
-                    </li>
-                    <li><span class="text-sm font-medium text-gray-700">Hasil Pencarian</span></li>
+                    <li><a href="{{ route('beranda') }}" class="text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors">Beranda</a></li>
+                    <li><span class="text-gray-400 text-sm">/</span></li>
+                    <li><a href="{{ route('lacak.index') }}" class="text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors">Lacak Pengajuan</a></li>
+                    <li><span class="text-gray-400 text-sm">/</span></li>
+                    <li><a href="{{ route('lacak.showLupaForm') }}" class="text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors">Lupa Nomor</a></li>
+                    <li><span class="text-gray-400 text-sm">/</span></li>
+                    <li><span class="text-sm font-medium text-primary-700">Hasil Pencarian</span></li>
                 </ol>
             </nav>
 
-            <div class="text-center">
-                <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Hasil Pencarian untuk NIK: {{ $warga->nik }}</h1>
-                <p class="mt-4 text-lg leading-8 text-gray-600">
-                    Menampilkan <span class="font-bold text-gray-900">{{ $bookings->count() }}</span> riwayat pengajuan (diurutkan dari yang terbaru).
+            {{-- Info Hasil --}}
+            <div class="mb-8 text-center">
+                <p class="text-sm text-gray-600">
+                    Ditemukan <span class="font-bold text-primary-700">{{ $riwayatBooking->count() }}</span> riwayat pengajuan untuk NIK: {{ $warga->nik }}
                 </p>
             </div>
 
-            <div class="mt-12 space-y-8">
-                @forelse ($bookings as $booking)
-                    <div class="bg-white p-6 rounded-lg shadow-lg ring-1 ring-gray-900/5">
-                        <div class="sm:flex sm:items-start sm:justify-between">
+            <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
+                {{-- PERBAIKAN: Gunakan $riwayatBooking, bukan $bookings --}}
+                @foreach ($riwayatBooking as $booking)
+                    <div class="relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+                        
+                        {{-- Header Kartu: No Booking & Tanggal --}}
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+                            <h3 class="text-lg font-bold text-gray-900 font-mono">{{ $booking->no_booking }}</h3>
+                            <time class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($booking->created_at)->translatedFormat('d F Y') }}</time>
+                        </div>
+
+                        {{-- Isi Kartu --}}
+                        <div class="flex-1 space-y-3 mb-6">
                             <div>
-                                <h2 class="text-xl font-semibold text-gray-900">No. Booking: {{ $booking->no_booking }}</h2>
-                                <p class="mt-2 text-gray-700"><strong>Layanan:</strong> {{ $booking->layanan->nama_layanan ?? 'N/A' }}</p>
-                                <p class="text-gray-700"><strong>Tgl. Booking:</strong> {{ \Carbon\Carbon::parse($booking->created_at)->translatedFormat('d F Y') }}</p>
+                                <p class="text-xs text-gray-500 uppercase font-semibold">Layanan</p>
+                                <p class="text-sm text-gray-900">{{ $booking->layanan->nama_layanan }}</p>
                             </div>
-                            <div class="mt-4 sm:mt-0 sm:ml-6 sm:flex-shrink-0">
-                                <a href="{{ route('lacak.show', $booking->no_booking) }}"
-                                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all">
-                                    Lacak Detail &rarr;
-                                </a>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase font-semibold">Status Terakhir</p>
+                                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium mt-1
+                                    @if($booking->status_berkas == 'SELESAI') bg-green-100 text-green-800
+                                    @elseif($booking->status_berkas == 'DITOLAK') bg-red-100 text-red-800
+                                    @elseif($booking->status_berkas == 'JANJI TEMU DIBUAT') bg-gray-100 text-gray-800
+                                    @else bg-yellow-100 text-yellow-800
+                                    @endif
+                                ">
+                                    {{ $booking->status_berkas }}
+                                </span>
                             </div>
                         </div>
-                        <div class="mt-4 border-t border-gray-200 pt-4">
-                            <p class="text-sm font-medium text-gray-600">Status Saat Ini:</p>
-                            @php
-                                // Ambil status terbaru dari log
-                                $latestLog = $booking->statusLogs->first();
-                                $latestStatus = $latestLog->status ?? $booking->status_berkas;
-                                $statusColorClass = 'bg-gray-100 text-gray-800'; // Default
-                                if ($latestStatus === 'JANJI TEMU DIBUAT') $statusColorClass = 'bg-blue-100 text-blue-800';
-                                if ($latestStatus === 'BERKAS DITERIMA') $statusColorClass = 'bg-yellow-100 text-yellow-800';
-                                if ($latestStatus === 'SEDANG DIPROSES') $statusColorClass = 'bg-orange-100 text-orange-800';
-                                if ($latestStatus === 'SELESAI') $statusColorClass = 'bg-green-100 text-green-800';
-                            @endphp
-                            <span class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold {{ $statusColorClass }}">
-                                {{ $latestStatus }}
-                            </span>
-                        </div>
-                    </div>
-                @empty
-                    <div class="text-center bg-white p-8 rounded-lg shadow-lg ring-1 ring-gray-900/5">
-                        <h2 class="text-2xl font-bold text-gray-900">Tidak Ada Riwayat Ditemukan</h2>
-                        <p class="mt-4 text-gray-600">Kami tidak dapat menemukan riwayat pengajuan apa pun yang cocok dengan data diri yang Anda masukkan.</p>
-                        <a href="{{ route('lacak.showLupaForm') }}"
-                           class="mt-6 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all">
-                            &larr; Coba Cari Lagi
+
+                        {{-- Footer Kartu: Tombol Lacak --}}
+                        <a href="{{ route('lacak.show', $booking->no_booking) }}" 
+                           class="mt-auto w-full rounded-md bg-primary-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 transition-colors">
+                            Lihat Detail Progres &rarr;
                         </a>
                     </div>
-                @endforelse
+                @endforeach
             </div>
             
             <div class="mt-12 text-center">
-                <a href="{{ route('lacak.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                    &larr; Kembali ke Pencarian Utama
-                </a>
+                 <a href="{{ route('lacak.showLupaForm') }}" class="text-sm font-medium text-gray-500 hover:text-primary-600">
+                    &larr; Kembali ke Pencarian
+                 </a>
             </div>
-
         </div>
     </div>
 </x-public-layout>

@@ -1,26 +1,24 @@
-{{-- 
-    File ini akan di-include oleh create.blade.php dan edit.blade.php
-    Kita akan menggunakan Alpine.js untuk mengelola input dinamis
---}}
-
-{{-- 
-    Variabel $layananData diinisialisasi di sini untuk membersihkan logika di dalam x-data.
-    Ini akan berisi data lama (untuk 'Edit') atau data kosong (untuk 'Create').
---}}
-@php
-    $layananData = $layanan ?? null; // Ambil $layanan jika ada (mode Edit)
-
-    // Siapkan data untuk Alpine, pastikan selalu ada 1 baris kosong jika data tidak ada
-    $dokumenWajibJson = (isset($layananData) && $layananData->dokumenWajib->count() > 0)
-        ? $layananData->dokumenWajib->map(fn($d) => ['deskripsi' => $d->deskripsi_dokumen])
-        : [['deskripsi' => '']];
-
-    $alurProsesJson = (isset($layananData) && $layananData->alurProses->count() > 0)
-        ? $layananData->alurProses->map(fn($a) => ['deskripsi' => $a->deskripsi_alur])
-        : [['deskripsi' => '']];
-@endphp
-
-<div>
+<div x-data='{
+    dokumenWajib: {!! $dokumenWajibJson !!},
+    alurProses: {!! $alurProsesJson !!},
+    
+    addDokumen() {
+        this.dokumenWajib.push({ deskripsi: "" });
+    },
+    removeDokumen(index) {
+        if (this.dokumenWajib.length > 1) {
+            this.dokumenWajib.splice(index, 1);
+        }
+    },
+    addAlur() {
+        this.alurProses.push({ deskripsi: "" });
+    },
+    removeAlur(index) {
+        if (this.alurProses.length > 1) {
+            this.alurProses.splice(index, 1);
+        }
+    }
+}'>
 
     @csrf {{-- Token CSRF akan di-include dari form utama --}}
 
@@ -59,7 +57,7 @@
                 
                 <div>
                     <label for="biaya" class="block text-sm font-medium text-gray-700">Biaya <span class="text-red-600">*</span></label>
-                    <input type="text" name="biaya" id="biaya" placeholder="Contoh: Rp 0,- (Gratis)"
+                    <input type="text" name="biaya" id="biaya" placeholder="Contoh: Rp 0,- (GratIS)"
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                            value="{{ old('biaya', $layanan->biaya ?? '') }}" required>
                     @error('biaya') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror

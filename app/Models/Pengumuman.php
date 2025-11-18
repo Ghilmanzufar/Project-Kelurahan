@@ -20,6 +20,8 @@ class Pengumuman extends Model
      */
     protected $fillable = [
         'judul',
+        'slug',
+        'featured_image',
         'isi_konten',
         'kategori',
         'tanggal_publikasi',

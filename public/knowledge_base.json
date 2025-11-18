@@ -1,0 +1,48 @@
+{
+    "config": {
+        "bot_name": "SiPentas Bot",
+        "default_answer": "Maaf, saya belum mengerti pertanyaan Anda. Silakan gunakan kata kunci yang lebih spesifik, contoh: 'syarat waris', 'cara booking', 'jam buka', atau 'lacak berkas'."
+    },
+    "data": [
+        {
+            "keywords": ["halo", "hi", "hai", "selamat pagi", "selamat siang", "sore", "malam", "assalamualaikum", "permisi"],
+            "answer": "Halo! Selamat datang di Layanan Pertanahan Kelurahan Klender. Saya asisten virtual siap membantu Anda. Silakan tanya tentang:\n1. Syarat Layanan (misal: 'syarat jual beli')\n2. Cara Booking\n3. Cara Lacak Berkas\n4. Jam Operasional"
+        },
+        {
+            "keywords": ["jam", "buka", "tutup", "operasional", "kerja", "waktu", "hari"],
+            "answer": "Pelayanan Kelurahan Klender buka pada:\nSenin - Jumat: 08:00 - 15:00 WIB.\nSabtu - Minggu & Hari Libur Nasional: TUTUP."
+        },
+        {
+            "keywords": ["alamat", "lokasi", "dimana", "tempat", "kantor"],
+            "answer": "Kantor kami berlokasi di:\nJl. Raya Klender No. 1, RT.01/RW.01, Duren Sawit, Jakarta Timur.\n(Dekat dengan pasar/stasiun Klender)."
+        },
+        {
+            "keywords": ["kontak", "telepon", "hp", "wa", "whatsapp", "email", "hubungi"],
+            "answer": "Anda dapat menghubungi kami melalui:\nTelepon: (021) 123-4567\nEmail: kontak@kel-klender.go.id\nAtau gunakan menu 'Kontak Kami' di website ini."
+        },
+        {
+            "keywords": ["booking", "daftar", "janji", "antri", "registrasi", "online"],
+            "answer": "Untuk membuat janji temu, silakan ikuti langkah ini:\n1. Buka menu 'Jenis Layanan' atau 'Buat Janji Temu'.\n2. Pilih layanan yang Anda butuhkan.\n3. Pilih petugas dan tanggal kedatangan.\n4. Isi data diri dan konfirmasi.\n5. Simpan Nomor Booking Anda."
+        },
+        {
+            "keywords": ["lacak", "status", "cek", "progres", "sampai mana", "tracking"],
+            "answer": "Anda bisa melacak status berkas di menu 'Lacak Pengajuan'. Masukkan Nomor Booking yang Anda dapatkan saat pendaftaran. Jika lupa nomor, Anda bisa mencarinya menggunakan NIK di menu tersebut."
+        },
+        {
+            "keywords": ["jual beli", "ajb", "beli tanah", "jual tanah", "akta jual beli"],
+            "answer": "Syarat Surat Pengantar Akta Jual Beli (AJB):\n1. Fotokopi KTP Penjual (Suami & Istri) & Pembeli.\n2. Fotokopi KK Penjual & Pembeli.\n3. Fotokopi Surat Nikah (jika sudah menikah).\n4. Sertifikat Tanah Asli.\n5. Bukti Lunas PBB tahun berjalan.\n6. Surat Persetujuan Suami/Istri."
+        },
+        {
+            "keywords": ["waris", "ahli waris", "kematian", "meninggal", "turun waris"],
+            "answer": "Syarat Surat Keterangan Ahli Waris:\n1. Surat Kematian Pewaris.\n2. Fotokopi KTP & KK semua ahli waris.\n3. Fotokopi Surat Nikah Pewaris.\n4. Surat Pernyataan Ahli Waris (dari RT/RW).\n5. Sertifikat Tanah (jika ada)."
+        },
+        {
+            "keywords": ["riwayat", "tanah", "sejarah", "girik", "letter c"],
+            "answer": "Untuk Surat Keterangan Riwayat Tanah, siapkan:\n1. KTP & KK Pemohon.\n2. Bukti kepemilikan awal (Girik/Letter C/AJB lama).\n3. Bukti lunas PBB.\n4. Surat pengantar RT/RW yang menyatakan penguasaan tanah."
+        },
+        {
+            "keywords": ["admin", "orang", "petugas", "manusia", "bingung", "susah"],
+            "answer": "Jika Anda mengalami kesulitan atau butuh bantuan petugas langsung, silakan datang ke kantor kami pada jam kerja, atau kirim pesan melalui menu 'Kontak Kami'."
+        }
+    ]
+}

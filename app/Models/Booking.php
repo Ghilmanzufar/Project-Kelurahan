@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany; // <<< TAMBAHKAN INI
 use App\Models\Warga; // <<< PASTIKAN INI ADA
 use App\Models\User; // <<< PASTIKAN INI ADA
 use App\Models\Layanan; // <<< PASTIKAN INI ADA
+use App\Models\BookingStatusLog; // <<< TAMBAHKAN INI
 
 class Booking extends Model
 {

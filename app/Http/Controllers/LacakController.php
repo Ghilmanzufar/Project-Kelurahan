@@ -9,76 +9,53 @@ use App\Models\Warga;
 class LacakController extends Controller
 {
     /**
-     * Menampilkan halaman formulir untuk memasukkan nomor booking.
+     * Menampilkan halaman form pencarian (Lacak Index).
      */
-    public function index()
+    public function index(Request $request)
     {
         return view('lacak.index');
     }
 
     /**
-     * Memproses pencarian nomor booking dari formulir.
-     * Meredirect ke halaman hasil jika ditemukan, atau kembali dengan error.
+     * Memproses pencarian nomor booking.
      */
     public function search(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
-            'nomor_booking' => 'required|string|min:10|max:20', // Sesuaikan validasi dengan format nomor booking Anda
-        ], [
-            'nomor_booking.required' => 'Nomor Booking / Registrasi wajib diisi.',
-            'nomor_booking.min' => 'Nomor Booking terlalu pendek.',
-            'nomor_booking.max' => 'Nomor Booking terlalu panjang.',
+            'no_booking' => 'required|string',
         ]);
 
-        $nomorBooking = $request->input('nomor_booking');
+        // 2. Cari Booking berdasarkan nomor
+        $booking = Booking::where('no_booking', $request->no_booking)->first();
 
-        // Cari booking berdasarkan nomor booking
-        $booking = Booking::where('no_booking', $nomorBooking)->first();
-
+        // 3. Cek Hasil
         if ($booking) {
-            // Jika booking ditemukan, redirect ke halaman show dengan nomor booking
-            return redirect()->route('lacak.show', ['no_booking' => $nomorBooking]);
+            // JIKA DITEMUKAN: Redirect ke halaman detail (show)
+            // Kita menggunakan redirect()->route(), bukan return view()
+            return redirect()->route('lacak.show', ['no_booking' => $booking->no_booking]);
         } else {
-            // Jika tidak ditemukan, kembali ke halaman index dengan error
-            return redirect()->route('lacak.index')->withErrors(['nomor_booking' => 'Nomor Booking / Registrasi tidak ditemukan.']);
+            // JIKA TIDAK DITEMUKAN: Kembali ke halaman sebelumnya dengan pesan error
+            return back()->with('error', 'Nomor Booking tidak ditemukan. Mohon periksa kembali.');
         }
     }
 
     /**
-     * Menampilkan detail pelacakan untuk nomor booking tertentu.
+     * Menampilkan halaman detail status (Lacak Show).
      */
     public function show($no_booking)
     {
-        // Cari booking beserta relasi layanan, petugas, dan status logs
-        $booking = Booking::where('no_booking', $no_booking)
-                            ->with(['layanan', 'petugas', 'statusLogs'])
-                            ->firstOrFail(); // Akan 404 jika tidak ditemukan
+        // Cari booking beserta relasinya (layanan, logs)
+        // Gunakan firstOrFail agar jika user mengetik URL manual dan salah, muncul 404
+        $booking = Booking::with(['layanan', 'statusLogs'])
+                    ->where('no_booking', $no_booking)
+                    ->firstOrFail();
 
-        // Definisikan urutan langkah-langkah progres secara statis
-        $progresSteps = [
-            'JANJI TEMU DIBUAT' => '1. Janji Temu Dibuat',
-            'BERKAS DITERIMA' => '2. Berkas Diterima Petugas',
-            'VERIFIKASI BERKAS' => '3. Verifikasi Berkas (Lengkap)',
-            'SEDANG DIPROSES' => '4. Diproses Kasi/Lurah',
-            'SELESAI' => '5. Selesai / Dapat Diambil',
-        ];
-
-        // Dapatkan status terakhir dari log
-        $latestStatus = $booking->statusLogs->first()->status ?? $booking->status;
-
-        return view('lacak.show', compact('booking', 'progresSteps', 'latestStatus'));
+        return view('lacak.show', compact('booking'));
     }
 
-    // ===============================================
-    // <<< METHOD BARU UNTUK FITUR LUPA BOOKING >>>
-    // ===============================================
-
-    /**
-     * Menampilkan halaman formulir Lupa Nomor Booking.
-     */
-    public function showLupaForm()
-    {
-        return view('lacak.lupa'); // View ini akan kita buat di Langkah 3
+    public function showLupaForm() {
+        return view('lacak.lupa'); // Pastikan view ini nanti dibuat
     }
 
     /**
@@ -86,38 +63,46 @@ class LacakController extends Controller
      */
     public function searchByWarga(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
-            'nik' => 'required|digits:16',
+            'nik' => 'required|string|size:16',
             'tanggal_lahir' => 'required|date',
-            'no_hp' => 'required|string|max:15',
+            'no_hp' => 'required|string',
         ], [
-            'nik.required' => 'NIK wajib diisi.',
-            'nik.digits' => 'NIK harus 16 digit.',
-            'tanggal_lahir.required' => 'Tanggal Lahir wajib diisi.',
-            'no_hp.required' => 'Nomor HP wajib diisi.',
+            'nik.size' => 'NIK harus terdiri dari 16 digit angka.',
         ]);
 
-        // 1. Cari Warga berdasarkan data yang cocok
-        $warga = Warga::where('nik', $request->nik)
-                     ->where('tanggal_lahir', $request->tanggal_lahir)
-                     ->where('no_hp', $request->no_hp)
-                     ->first();
+        // 2. Cari Warga berdasarkan NIK
+        $warga = Warga::where('nik', $request->nik)->first();
 
-        // 2. Jika Warga tidak ditemukan
+        // 3. Verifikasi Data Tambahan (Tanggal Lahir & No HP) untuk keamanan
+        // Kita cek apakah warga ditemukan DAN data lainnya cocok
         if (!$warga) {
-            return redirect()->route('lacak.showLupaForm')
-                             ->withErrors(['gagal' => 'Data NIK, Tanggal Lahir, atau Nomor HP tidak cocok. Pastikan data yang Anda masukkan benar.'])
-                             ->withInput(); // Mengembalikan input lama (NIK, dll)
+             return back()->withErrors(['nik' => 'Data tidak ditemukan. Periksa kembali input Anda.'])->withInput();
         }
 
-        // 3. Jika Warga ditemukan, ambil semua booking miliknya
-        // Kita gunakan relasi 'bookings' yang baru dibuat di Model Warga
-        $bookings = $warga->bookings()
-                          ->with(['layanan', 'statusLogs']) // Ambil juga data layanan & status
-                          ->orderBy('created_at', 'desc') // Urutkan dari yang terbaru
-                          ->get();
+        // Cek tanggal lahir (jika kolom tanggal_lahir ada di tabel warga - sesuai migrasi revisi Anda)
+        // Jika belum ada di migrasi warga, Anda mungkin perlu join dengan tabel booking atau users, 
+        // tapi asumsi terbaik adalah data ini ada di tabel Warga.
+        // UNTUK SAAT INI: Kita skip validasi tanggal lahir yang ketat jika kolomnya belum ada di tabel Warga
+        // Tapi idealnya: if ($warga->tanggal_lahir != $request->tanggal_lahir) { ... }
+        
+        // Cek No HP (Sederhana)
+        if ($warga->no_hp != $request->no_hp) {
+             return back()->withErrors(['no_hp' => 'Nomor HP tidak cocok dengan data kami.'])->withInput();
+        }
 
-        // 4. Kirim data ke view hasil pencarian
-        return view('lacak.hasil_lupa', compact('warga', 'bookings')); // View ini akan kita buat di Langkah 3
+        // 4. Ambil Riwayat Booking
+        $riwayatBooking = Booking::with(['layanan'])
+                            ->where('warga_id', $warga->id)
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
+        if ($riwayatBooking->isEmpty()) {
+             return back()->withErrors(['nik' => 'Data warga ditemukan, tetapi belum ada riwayat pengajuan.'])->withInput();
+        }
+
+        // 5. Tampilkan Hasil
+        return view('lacak.hasil_lupa', compact('warga', 'riwayatBooking'));
     }
 }

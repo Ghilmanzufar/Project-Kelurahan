@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PengajuanBerkasController;
 use App\Http\Controllers\Admin\PengumumanController as AdminPengumumanController;
 use App\Http\Controllers\Admin\PetugasController as AdminPetugasController;
 use App\Http\Controllers\Admin\WargaController;
+use App\Http\Controllers\BantuanController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -41,13 +42,27 @@ Route::get('/layanan/{layanan}', [LayananController::class, 'show'])->name('laya
 
 // Rute Booking (Pendaftaran Layanan)
 Route::prefix('booking')->name('booking.')->group(function () {
-    Route::get('/{layanan_id}/step-1', [BookingController::class, 'showStep1Form'])->name('step1');
-    Route::post('/{layanan_id}/step-1', [BookingController::class, 'storeStep1'])->name('storeStep1');
-    Route::get('/step-2', [BookingController::class, 'showStep2Form'])->name('step2');
+    // <<< TAMBAHKAN RUTE INI DI PALING ATAS >>>
+    Route::get('/', [BookingController::class, 'index'])->name('index');
+
+    // PERBAIKAN: Ganti 'showStep1Form' menjadi 'showStep1'
+    Route::get('/{layanan}/step-1', [BookingController::class, 'showStep1'])->name('step1'); 
+    Route::post('/{layanan}/step-1', [BookingController::class, 'storeStep1'])->name('storeStep1');
+    
+    // PERBAIKAN: Ganti 'showStep2Form' menjadi 'showStep2'
+    Route::get('/step-2', [BookingController::class, 'showStep2'])->name('step2');
     Route::post('/step-2', [BookingController::class, 'storeStep2'])->name('storeStep2');
-    Route::get('/step-3', [BookingController::class, 'showStep3Form'])->name('step3');
+    
+    // PERBAIKAN: Ganti 'showStep3Form' menjadi 'showStep3'
+    Route::get('/step-3', [BookingController::class, 'showStep3'])->name('step3');
     Route::post('/step-3', [BookingController::class, 'storeStep3'])->name('storeStep3');
-    Route::get('/success/{no_booking}', [BookingController::class, 'success'])->name('success');
+    
+    
+    Route::post('/store', [BookingController::class, 'storeBooking'])->name('storeBooking');
+    // <<< --------------------------------- >>>
+    Route::get('/success/{no_booking}', [BookingController::class, 'showSuccess'])->name('success');
+    
+    // (Opsional, jika fitur ini ada)
     Route::get('/check-kuota/{layanan_id}/{tanggal}', [BookingController::class, 'checkKuota'])->name('checkKuota');
     Route::get('/get-petugas/{layanan_id}', [BookingController::class, 'getPetugas'])->name('getPetugas');
 });
@@ -66,11 +81,14 @@ Route::prefix('lacak')->name('lacak.')->group(function () {
 
 // Rute Pengumuman / Berita
 Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman.index');
-Route::get('/pengumuman/{pengumuman}', [PengumumanController::class, 'show'])->name('pengumuman.show');
+Route::get('/pengumuman/{pengumuman:slug}', [PengumumanController::class, 'show'])->name('pengumuman.show');
 
 // Rute Halaman Statis (Kontak Kami)
 Route::get('/kontak-kami', [PageController::class, 'kontak'])->name('kontak');
+Route::post('/kontak-kami', [PageController::class, 'storeKontak'])->name('kontak.store');
 
+// Rute Bantuan / FAQ
+Route::get('/bantuan', [BantuanController::class, 'index'])->name('bantuan.index');
 
 // ===============================================
 // RUTE UNTUK AUTENTIKASI (LOGIN/REGISTER)
@@ -87,10 +105,6 @@ Route::middleware('auth')->group(function () {
 // (Membutuhkan autentikasi DAN role tertentu)
 // ===============================================
 Route::middleware(['auth', 'role.check'])->prefix('admin')->name('admin.')->group(function () {
-    // Route::get('/dashboard', function () {
-    //     return view('admin.dashboard');
-    // })->name('dashboard'); // Nama rute jadi 'admin.dashboard'
-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // ===============================================
@@ -108,6 +122,11 @@ Route::middleware(['auth', 'role.check'])->prefix('admin')->name('admin.')->grou
     Route::prefix('pengajuan-berkas')->name('pengajuan.')->group(function () {
         Route::get('/', [PengajuanBerkasController::class, 'index'])->name('index');
         Route::post('/{booking}/update-status', [PengajuanBerkasController::class, 'updateStatus'])->name('update-status');
+
+        // <<< RUTE BARU UNTUK DOWNLOAD PDF >>>
+        Route::get('/download-pdf', [App\Http\Controllers\Admin\PengajuanBerkasController::class, 'downloadPdf'])
+            ->name('download_pdf')
+            ->middleware('can:kelola-berkas'); // Pastikan tetap dilindungi
     });
 
     // ===============================================
@@ -132,7 +151,22 @@ Route::middleware(['auth', 'role.check'])->prefix('admin')->name('admin.')->grou
         Route::get('/', [WargaController::class, 'index'])->name('index'); // Daftar Warga
         Route::get('/{warga}/edit', [WargaController::class, 'edit'])->name('edit'); // Tampilkan Form Edit
         Route::put('/{warga}', [WargaController::class, 'update'])->name('update'); // Simpan Perubahan (Update)
+        Route::get('/download-pdf', [WargaController::class, 'downloadPdf'])->name('download_pdf');
     });
+
+    Route::get('/laporan', [App\Http\Controllers\Admin\LaporanController::class, 'index'])
+        ->name('laporan.index')
+        ->middleware('can:lihat-laporan'); // <<< PERHATIKAN INI
+
+    // Rute Baru untuk Download Laporan PDF
+    // Rute ini akan menerima parameter filter tanggal yang sama
+    Route::get('/laporan/download-pdf', [App\Http\Controllers\Admin\LaporanController::class, 'downloadPdf'])
+        ->name('laporan.download_pdf')
+        ->middleware('can:lihat-laporan'); // Tetap lindungi dengan Gate yang sama
+
+    // Rute Manajemen Pesan Kontak
+    Route::get('/pesan', [App\Http\Controllers\Admin\PesanController::class, 'index'])->name('pesan.index');
+    Route::delete('/pesan/{id}', [App\Http\Controllers\Admin\PesanController::class, 'destroy'])->name('pesan.destroy');
 });
 
 // Ini mengimport rute autentikasi dari Breeze

@@ -11,11 +11,25 @@ class LayananController extends Controller
      * Menampilkan daftar semua layanan.
      * (Sesuai dengan mockup Halaman Utama: Daftar Layanan di sisi Warga)
      */
-    public function index()
+    /**
+     * Menampilkan daftar semua layanan (dengan fitur pencarian).
+     */
+    public function index(Request $request)
     {
-        // Mengambil semua data layanan yang berstatus 'aktif'
-        // dan mengurutkannya berdasarkan nama
-        $layanan = Layanan::where('status', 'aktif')->orderBy('nama_layanan')->get();
+        // Mulai query
+        $query = Layanan::where('status', 'aktif');
+
+        // Jika ada input pencarian
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_layanan', 'like', '%' . $search . '%')
+                  ->orWhere('deskripsi', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Ambil data (diurutkan nama)
+        $layanan = $query->orderBy('nama_layanan')->get();
 
         // Mengirim data layanan ke view 'layanan.index'
         return view('layanan.index', compact('layanan'));

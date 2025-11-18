@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         // Panggil seeder lain di sini
         $this->call([
-            // LayananSeeder::class, // Jika Anda punya LayananSeeder
+            LayananSeeder::class, // <<< TAMBAHKAN INI
             BookingSeeder::class, // <<< TAMBAHKAN INI
             PengumumanSeeder::class,
             UserSeeder::class,

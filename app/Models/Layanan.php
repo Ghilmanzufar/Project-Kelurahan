@@ -4,42 +4,57 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str; 
 
 class Layanan extends Model
 {
     use HasFactory;
 
-    /**
-     * Tentukan nama tabel jika tidak sesuai konvensi Laravel (opsional, tapi bagus)
-     */
-    protected $table = 'layanan';
+    protected $table = 'layanan'; // Pastikan nama tabel benar
+    protected $guarded = ['id']; // Gunakan guarded agar lebih aman
 
-    /**
-     * Kolom yang boleh diisi secara massal (untuk admin panel nanti)
-     */
+    // Atribut yang dapat diisi secara massal
     protected $fillable = [
         'nama_layanan',
-        'deskripsi',
-        'estimasi_proses',
+        'slug', // Pastikan kolom slug ada di tabel Anda
+        'deskripsi_singkat',
+        'info_tambahan',
         'biaya',
+        'estimasi_waktu',
         'dasar_hukum',
-        'status',
+        'status', // status aktif/nonaktif layanan
     ];
 
-    /**
-     * RELASI: Satu Layanan memiliki BANYAK Dokumen Wajib
-     */
-    public function dokumenWajib(): HasMany
+    // Relasi ke Booking
+    // Sebuah Layanan bisa memiliki banyak Booking
+    public function bookings()
     {
-        return $this->hasMany(LayananDokumenWajib::class);
+        return $this->hasMany(Booking::class, 'layanan_id'); // Pastikan 'layanan_id' adalah foreign key di tabel bookings
     }
 
-    /**
-     * RELASI: Satu Layanan memiliki BANYAK Alur Proses
-     */
-    public function alurProses(): HasMany
+    // Relasi ke Dokumen Wajib
+    // Sebuah Layanan bisa memiliki banyak Dokumen Wajib
+    public function dokumenWajib()
     {
-        return $this->hasMany(LayananAlurProses::class);
+        return $this->hasMany(LayananDokumenWajib::class, 'layanan_id');
+    }
+
+    // Relasi ke Alur Proses
+    // Sebuah Layanan bisa memiliki banyak Alur Proses
+    public function alurProses()
+    {
+        return $this->hasMany(LayananAlurProses::class, 'layanan_id');
+    }
+    
+    // Mutator untuk menghasilkan slug secara otomatis
+    protected static function booted()
+    {
+        static::creating(function ($layanan) {
+            $layanan->slug = Str::slug($layanan->nama_layanan);
+        });
+
+        static::updating(function ($layanan) {
+            $layanan->slug = Str::slug($layanan->nama_layanan);
+        });
     }
 }

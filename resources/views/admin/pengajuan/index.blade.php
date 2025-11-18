@@ -3,10 +3,22 @@
         {{ __('Manajemen Pengajuan Berkas') }}
     </x-slot>
 
-    {{-- Alpine.js data untuk modal --}}
-    {{-- showUpdateStatusModal: mengontrol modal update status --}}
-    {{-- selectedBooking: objek booking yang dipilih untuk di-update --}}
-    <div x-data="{ showUpdateStatusModal: false, selectedBooking: null, newStatus: '', newDeskripsi: '' }">
+    {{-- 
+        Inisialisasi Alpine.js untuk semua state modal:
+        - showUpdateStatusModal: mengontrol modal update status
+        - selectedBooking: objek booking yang dipilih untuk di-update
+        - newStatus, newDeskripsi: untuk data form di dalam modal
+        - showConfirmModal, confirmAction, confirmMessage: untuk modal konfirmasi
+    --}}
+    <div x-data="{ 
+        showUpdateStatusModal: false, 
+        selectedBooking: null, 
+        newStatus: '', 
+        newDeskripsi: '',
+        showConfirmModal: false, 
+        confirmAction: null,     
+        confirmMessage: ''       
+    }">
 
         {{-- Pesan Sukses/Gagal (dari redirect controller) --}}
         @if (session('success'))
@@ -23,61 +35,10 @@
         @endif
 
         {{-- =============================================== --}}
-        {{-- <<< FORM FILTER (SAMA DENGAN MANAJEMEN BOOKING) >>> --}}
+        {{-- <<< MEMANGGIL FILE FILTER PARTIAL >>> --}}
         {{-- =============================================== --}}
-        <div class="mb-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-800">Filter Pengajuan Berkas</h3>
-                <form action="{{ route('admin.pengajuan.index') }}" method="GET" class="mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        {{-- Filter Status --}}
-                        <div>
-                            <label for="status_berkas" class="block text-sm font-medium text-gray-700">Status Berkas</label>
-                            <select id="status_berkas" name="status_berkas" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="">Semua Status (Default: Sedang Diproses)</option>
-                                @foreach ($allStatus as $status)
-                                    <option value="{{ $status }}" @if(request('status_berkas') == $status) selected @endif>
-                                        {{ Str::title(str_replace('_', ' ', $status)) }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        
-                        {{-- Filter Layanan --}}
-                        <div>
-                            <label for="layanan_id" class="block text-sm font-medium text-gray-700">Layanan</label>
-                            <select id="layanan_id" name="layanan_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="">Semua Layanan</option>
-                                @foreach ($allLayanan as $layanan)
-                                    <option value="{{ $layanan->id }}" @if(request('layanan_id') == $layanan->id) selected @endif>{{ $layanan->nama_layanan }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+        @include('admin.pengajuan._filter')
 
-                        {{-- Filter Petugas --}}
-                        <div>
-                            <label for="petugas_id" class="block text-sm font-medium text-gray-700">Petugas</label>
-                            <select id="petugas_id" name="petugas_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="">Semua Petugas</option>
-                                @foreach ($allPetugas as $petugas)
-                                    <option value="{{ $petugas->id }}" @if(request('petugas_id') == $petugas->id) selected @endif>{{ $petugas->nama_lengkap }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Tombol Filter --}}
-                        <div class="flex items-end space-x-2">
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                                Filter
-                            </button>
-                            <a href="{{ route('admin.pengajuan.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400">
-                                Reset
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
 
         {{-- =============================================== --}}
         {{-- <<< TABEL DAFTAR PENGAJUAN BERKAS >>> --}}
@@ -151,14 +112,15 @@
         </div>
 
         {{-- =============================================== --}}
-        {{-- <<< MODAL "UPDATE STATUS" (BELUM LENGKAP) >>> --}}
-        {{-- Ini akan dibuat di Langkah 3. Saat ini hanya kerangka. --}}
+        {{-- <<< MODAL "UPDATE STATUS" (YANG SUDAH DIISI) >>> --}}
         {{-- =============================================== --}}
         <div x-show="showUpdateStatusModal" class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display: none;">
             <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                
+                {{-- Overlay untuk Modal Update Status (TANPA @click) --}}
                 <div x-show="showUpdateStatusModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
                      x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                     class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showUpdateStatusModal = false"></div>
+                     class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div x-show="showUpdateStatusModal" x-transition:enter="ease-out duration-300" 
@@ -173,8 +135,15 @@
                         <h3 class="text-lg leading-6 font-medium text-white" id="modal-title">
                             Update Status Pengajuan Berkas (No. <span x-text="selectedBooking ? selectedBooking.no_booking : ''"></span>)
                         </h3>
+                        <button type="button" @click="showUpdateStatusModal = false" class="text-white hover:text-blue-200 focus:outline-none">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Tutup
+                        </button>
                     </div>
-
+                    
+                    {{-- ISI MODAL YANG DIPERBARUI --}}
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         {{-- Data Dasar Booking --}}
                         <div class="border-b pb-2 mb-4">
@@ -184,7 +153,7 @@
                                 <div><strong>Layanan:</strong> <span x-text="selectedBooking ? selectedBooking.layanan.nama_layanan : ''"></span></div>
                                 <div><strong>Jadwal:</strong> <span x-text="selectedBooking ? new Date(selectedBooking.jadwal_janji_temu).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : ''"></span></div>
                                 <div><strong>Status Terkini:</strong> 
-                                    <span x-text="selectedBooking ? selectedBooking.status_berkas : ''" 
+                                    <span x-text="selectedBooking ? selectedBooking.status_berkas.replace(/_/g, ' ') : ''" 
                                           :class="{
                                             'px-2 inline-flex text-xs leading-5 font-semibold rounded-full': true,
                                             'bg-yellow-100 text-yellow-800': selectedBooking && selectedBooking.status_berkas === 'JANJI TEMU DIKONFIRMASI',
@@ -206,6 +175,7 @@
                                 <template x-for="log in selectedBooking.status_logs" :key="log.id">
                                     <div class="text-sm border-l-2 pl-3" 
                                          :class="{
+                                            'border-gray-400': log.status === 'JANJI TEMU DIBUAT',
                                             'border-yellow-500': log.status === 'JANJI TEMU DIKONFIRMASI',
                                             'border-blue-500': log.status === 'BERKAS DITERIMA',
                                             'border-indigo-500': log.status === 'VERIFIKASI BERKAS',
@@ -213,11 +183,11 @@
                                             'border-green-500': log.status === 'SELESAI',
                                             'border-red-500': log.status === 'DITOLAK'
                                          }">
-                                        <p class="font-medium text-gray-900" x-text="log.status"></p>
+                                        <p class="font-medium text-gray-900" x-text="log.status.replace(/_/g, ' ')"></p>
                                         <p class="text-gray-700" x-text="log.deskripsi"></p>
                                         <p class="text-xs text-gray-500">
                                             <span x-text="new Date(log.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })"></span> 
-                                            oleh <span x-text="log.petugas ? log.petugas.nama_lengkap : 'Sistem'"></span>
+                                            oleh <span x-text="log.petugas_id ? 'Petugas' : 'Sistem'"></span> 
                                         </p>
                                     </div>
                                 </template>
@@ -226,12 +196,22 @@
                                 <p class="text-sm text-gray-500 text-center py-4">Belum ada riwayat status.</p>
                             </template>
                         </div>
-
+                        
                         {{-- Form Update Status --}}
                         <h4 class="text-md font-semibold text-gray-800 mt-6 border-b pb-2 mb-3">Perbarui Status:</h4>
-                        <form x-data @submit.prevent="if (confirm('Apakah Anda yakin ingin memperbarui status ini?')) $el.submit()"
+                        
+                        {{-- =============================================== --}}
+                        {{-- <<< GANTI KODE FORM LAMA ANDA DENGAN INI >>> --}}
+                        {{-- =============================================== --}}
+                        <form x-ref="updateStatusForm" {{-- Tambahkan x-ref --}}
                               :action="selectedBooking ? `{{ url('admin/pengajuan-berkas') }}/${selectedBooking.id}/update-status` : '#'" 
-                              method="POST">
+                              method="POST"
+                              {{-- Ganti @submit.prevent dengan logika untuk memanggil modal baru --}}
+                              @submit.prevent="
+                                  confirmAction = () => { $refs.updateStatusForm.submit(); showConfirmModal = false; };
+                                  confirmMessage = 'Apakah Anda yakin ingin memperbarui status pengajuan berkas ini?';
+                                  showConfirmModal = true;
+                              ">
                             @csrf
                             <div class="space-y-4">
                                 <div>
@@ -269,6 +249,11 @@
                 </div>
             </div>
         </div>
+
+        {{-- =============================================== --}}
+        {{-- <<< MODAL KONFIRMASI (SEKARANG DIPANGGIL VIA INCLUDE) >>> --}}
+        {{-- =============================================== --}}
+        @include('admin.pengajuan._modal-konfirmasi')
         
-    </div>
+    </div> {{-- Penutup div x-data utama --}}
 </x-admin-layout>

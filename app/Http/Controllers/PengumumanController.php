@@ -7,36 +7,42 @@ use Illuminate\Http\Request;
 
 class PengumumanController extends Controller
 {
-    /**
-     * Menampilkan daftar semua pengumuman (dengan paginasi dan pencarian).
-     */
     public function index(Request $request)
     {
-        // Ambil query pencarian dari URL (misal: /pengumuman?search=pajak)
-        $query = $request->input('search');
+        $query = Pengumuman::where('status', 'aktif');
 
-        $pengumuman = Pengumuman::where('status', 'aktif')
-            ->when($query, function ($q) use ($query) {
-                // Jika ada query pencarian, cari di judul atau isi konten
-                $q->where('judul', 'like', '%' . $query . '%')
-                  ->orWhere('isi_konten', 'like', '%' . $query . '%');
-            })
-            ->orderBy('tanggal_publikasi', 'desc') // Tampilkan yang terbaru di atas
-            ->paginate(5); // Tampilkan 5 pengumuman per halaman
+        // Fitur Pencarian
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('judul', 'like', '%' . $search . '%')
+                  ->orWhere('isi_konten', 'like', '%' . $search . '%')
+                  ->orWhere('kategori', 'like', '%' . $search . '%');
+            });
+        }
 
-        return view('pengumuman.index', compact('pengumuman', 'query'));
+        // Urutkan dari yang terbaru
+        $pengumuman = $query->orderBy('tanggal_publikasi', 'desc')
+                            ->paginate(9) // Tampilkan 9 berita per halaman
+                            ->withQueryString(); // Agar search tidak hilang saat pindah halaman
+
+        return view('pengumuman.index', compact('pengumuman'));
     }
 
-    /**
-     * Menampilkan detail satu pengumuman.
-     */
-    public function show(Pengumuman $pengumuman) // Menggunakan Route Model Binding
+    public function show(Pengumuman $pengumuman)
     {
-        // Jika warga mencoba mengakses URL pengumuman yang belum 'aktif'
+        // Pastikan hanya pengumuman aktif yang bisa dibuka
         if ($pengumuman->status !== 'aktif') {
             abort(404);
         }
 
-        return view('pengumuman.show', compact('pengumuman'));
+        // Ambil berita terkait (opsional, untuk sidebar nanti)
+        $beritaTerkait = Pengumuman::where('status', 'aktif')
+                            ->where('id', '!=', $pengumuman->id)
+                            ->where('kategori', $pengumuman->kategori)
+                            ->take(3)
+                            ->get();
+
+        return view('pengumuman.show', compact('pengumuman', 'beritaTerkait'));
     }
 }

@@ -9,22 +9,36 @@
                 <h3 class="text-xl font-semibold text-gray-800">Daftar Data Warga</h3>
             </div>
             
-            {{-- Form Pencarian --}}
-            <div class="mt-4">
-                <form action="{{ route('admin.warga.index') }}" method="GET" class="flex space-x-2">
+            {{-- =============================================== --}}
+            {{-- <<< FORM PENCARIAN DIPERBARUI DI SINI >>> --}}
+            {{-- =============================================== --}}
+            <form action="{{ route('admin.warga.index') }}" method="GET" class="mt-4">
+                <div class="flex space-x-2">
                     <input type="text" name="search" placeholder="Cari NIK, Nama, atau No. HP..."
                            value="{{ request('search') }}"
                            class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                    
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
                         Cari
                     </button>
+                    
                     @if(request('search'))
-                        <a href="{{ route('admin.warga.index') }}" class="px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400">
+                        <a href="{{ route('admin.warga.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400">
                             Reset
                         </a>
                     @endif
-                </form>
-            </div>
+
+                    {{-- <<< TOMBOL DOWNLOAD PDF BARU >>> --}}
+                    <a href="{{ route('admin.warga.download_pdf', request()->query()) }}" 
+                       target="_blank"
+                       class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        PDF
+                    </a>
+                    {{-- <<< AKHIR TOMBOL DOWNLOAD PDF >>> --}}
+                </div>
+            </form>
+            {{-- =============================================== --}}
         </div>
 
         {{-- Pesan Sukses/Error --}}
@@ -57,7 +71,7 @@
                         @forelse ($allWarga as $warga)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $warga->nik }}</div>
+                                    <div class="text-sm font-medium text-gray-900">'{{ $warga->nik }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-700">{{ $warga->nama_lengkap }}</div>
@@ -70,7 +84,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <a href="{{ route('admin.warga.edit', $warga->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit Data</a>
-                                    {{-- Bisa ditambahkan link untuk melihat riwayat booking warga ini --}}
                                 </td>
                             </tr>
                         @empty

@@ -27,9 +27,24 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password123'), // Password yang mudah diingat
         ]);
 
-        // ===============================================
-        // Anda bisa tambahkan user dummy lain di sini
-        // User::factory()->count(10)->create(); // Contoh jika Anda punya UserFactory
-        // ===============================================
+        // (Opsional) Tambahkan Pimpinan dan Petugas Layanan
+        User::create([
+            'nama_lengkap' => 'Petugas Layanan',
+            'username' => 'petugas', 
+            'jabatan' => 'Staff Pelayanan',
+            'role' => 'petugas_layanan', // Pastikan string ini SAMA PERSIS dengan di ENUM
+            'status' => 'aktif',
+            'email' => 'petugas@example.com',
+            'password' => Hash::make('password123'), 
+        ]);
+        User::create([
+            'nama_lengkap' => 'Pimpinan Klender',
+            'username' => 'pimpinan', 
+            'jabatan' => 'Lurah',
+            'role' => 'pimpinan', // Pastikan string ini SAMA PERSIS dengan di ENUM
+            'status' => 'aktif',
+            'email' => 'pimpinan@example.com',
+            'password' => Hash::make('password123'), 
+        ]);
     }
 }

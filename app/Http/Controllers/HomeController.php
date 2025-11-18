@@ -23,7 +23,7 @@ class HomeController extends Controller
         // 2. Mengambil 2 Pengumuman terbaru
         $pengumumanTerbaru = Pengumuman::where('status', 'aktif')
                                         ->orderBy('tanggal_publikasi', 'desc')
-                                        ->take(2)
+                                        ->take(6)
                                         ->get();
 
         // 3. Mengirim data ke view 'beranda'
@@ -31,5 +31,10 @@ class HomeController extends Controller
             'layananPopuler' => $layananPopuler,
             'pengumumanTerbaru' => $pengumumanTerbaru,
         ]);
+    }
+
+    public function kontak()
+    {
+        return view('kontak.index');
     }
 }
