@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Layanan; // Import model
+use App\Models\Layanan; 
 
 class LayananSeeder extends Seeder
 {
@@ -15,8 +15,8 @@ class LayananSeeder extends Seeder
     {
         // 1. Layanan: Surat Keterangan Riwayat Tanah
         $layanan1 = Layanan::create([
-            'nama_layanan' => 'Surat Keterangan Riwayat Tanah',
-            'deskripsi' => 'Surat yang menerangkan sejarah penguasaan tanah dari awal hingga saat ini.',
+            'nama_layanan' => 'Pelayanan Ahli Waris',
+            'deskripsi' => 'Surat keterangan yang menjelaskan riwayat kepemilikan tanah tertentu.',
             'estimasi_proses' => '3-5 Hari Kerja',
             'biaya' => 'Rp 0,- (Gratis)',
             'dasar_hukum' => 'PP No. 24 Tahun 1997',
@@ -41,8 +41,8 @@ class LayananSeeder extends Seeder
 
         // 2. Layanan: Surat Pengantar Akta Jual Beli (AJB)
         $layanan2 = Layanan::create([
-            'nama_layanan' => 'Surat Pengantar Akta Jual Beli (AJB)',
-            'deskripsi' => 'Surat pengantar untuk membuat Akta Jual Beli di Kantor PPAT.',
+            'nama_layanan' => 'Pelayanan Pernyataan Ahli Waris',
+            'deskripsi' => 'Surat pengantar yang diperlukan untuk pembuatan Akta Jual Beli (AJB) di hadapan PPAT.',
             'estimasi_proses' => '2-3 Hari Kerja',
             'biaya' => 'Rp 0,- (Gratis)',
             'dasar_hukum' => 'Permen ATR/BPN No. 3 Tahun 1997',
@@ -67,8 +67,8 @@ class LayananSeeder extends Seeder
 
         // 3. Layanan: Surat Keterangan Ahli Waris
         $layanan3 = Layanan::create([
-            'nama_layanan' => 'Surat Keterangan Ahli Waris',
-            'deskripsi' => 'Surat yang menerangkan siapa saja ahli waris yang sah dari seseorang yang telah meninggal dunia.',
+            'nama_layanan' => 'Pelayanan Permohonan Riwayat Tanah',
+            'deskripsi' => 'Surat keterangan yang menyatakan seseorang adalah ahli waris dari pewaris tertentu.',
             'estimasi_proses' => '5-7 Hari Kerja',
             'biaya' => 'Rp 0,- (Gratis)',
             'dasar_hukum' => 'Kompilasi Hukum Islam',

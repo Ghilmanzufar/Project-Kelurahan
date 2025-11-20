@@ -16,13 +16,11 @@ class Layanan extends Model
     // Atribut yang dapat diisi secara massal
     protected $fillable = [
         'nama_layanan',
-        'slug', // Pastikan kolom slug ada di tabel Anda
-        'deskripsi_singkat',
-        'info_tambahan',
+        'deskripsi',
+        'estimasi_proses',
         'biaya',
-        'estimasi_waktu',
         'dasar_hukum',
-        'status', // status aktif/nonaktif layanan
+        'status',
     ];
 
     // Relasi ke Booking
@@ -46,15 +44,4 @@ class Layanan extends Model
         return $this->hasMany(LayananAlurProses::class, 'layanan_id');
     }
     
-    // Mutator untuk menghasilkan slug secara otomatis
-    protected static function booted()
-    {
-        static::creating(function ($layanan) {
-            $layanan->slug = Str::slug($layanan->nama_layanan);
-        });
-
-        static::updating(function ($layanan) {
-            $layanan->slug = Str::slug($layanan->nama_layanan);
-        });
-    }
 }

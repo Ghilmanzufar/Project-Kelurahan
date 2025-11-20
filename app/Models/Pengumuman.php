@@ -27,7 +27,7 @@ class Pengumuman extends Model
         'tanggal_publikasi',
         'file_pdf_path',
         'status',
-        'user_id', // Penting untuk tahu siapa yang mempublikasikan
+        'user_id', 
     ];
 
     /**

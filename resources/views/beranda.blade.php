@@ -7,7 +7,7 @@
             <div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
                 {{-- Tambahan untuk SVG Shape di kanan --}}
                 <svg class="hidden lg:block absolute right-0 inset-y-0 h-full w-48 text-white transform translate-x-1/2"
-                     fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    fill="currentColor" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                     <polygon points="50,0 100,0 50,100 0,100" />
                 </svg>
 
@@ -30,13 +30,13 @@
                         <div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                             <div class="rounded-md shadow">
                                 <a href="{{ route('layanan.index') }}"
-                                   class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition duration-300 md:py-4 md:text-lg md:px-10">
+                                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition duration-300 md:py-4 md:text-lg md:px-10">
                                     Lihat Semua Layanan
                                 </a>
                             </div>
                             <div class="mt-3 sm:mt-0 sm:ml-3">
                                 <a href="{{ route('lacak.index') }}"
-                                   class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md ext-primary-700 bg-primary-50 hover:bg-primary-100 transition duration-300 md:py-4 md:text-lg md:px-10">
+                                    class="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md ext-primary-700 bg-primary-50 hover:bg-primary-100 transition duration-300 md:py-4 md:text-lg md:px-10">
                                     Lacak Pengajuan
                                 </a>
                             </div>
