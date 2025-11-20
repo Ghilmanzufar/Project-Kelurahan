@@ -40,6 +40,7 @@ class PengajuanBerkasController extends Controller
             'VERIFIKASI BERKAS',
             'SEDANG DIPROSES',
             'SELESAI',
+            'BERKAS TIDAK LENGKAP', // <<< STATUS BARU
         ];
 
         // Mulai query dasar
@@ -79,9 +80,29 @@ class PengajuanBerkasController extends Controller
             return $q->where('layanan_id', $request->layanan_id);
         });
 
-        $query->when($request->filled('petugas_id'), function ($q) use ($request) {
-            return $q->where('petugas_id', $request->petugas_id);
+        // Filter Berdasarkan Tanggal Kunjungan
+        $query->when($request->filled('start_date'), function ($q) use ($request) {
+            return $q->whereDate('jadwal_janji_temu', '>=', $request->start_date);
         });
+
+        $query->when($request->filled('end_date'), function ($q) use ($request) {
+            return $q->whereDate('jadwal_janji_temu', '<=', $request->end_date);
+        });
+
+        // Urutkan (Sorting)
+        $sortBy = $request->get('sort_by', 'jadwal_janji_temu'); // Default sort by tanggal janji temu
+        $sortOrder = $request->get('sort_order', 'asc'); // Default ascending
+
+        // Validasi kolom yang boleh disort
+        $validSortColumns = ['no_booking', 'jadwal_janji_temu', 'status_berkas', 'created_at'];
+        if (!in_array($sortBy, $validSortColumns)) {
+            $sortBy = 'jadwal_janji_temu'; // Fallback jika kolom tidak valid
+        }
+        if (!in_array($sortOrder, ['asc', 'desc'])) {
+            $sortOrder = 'asc'; // Fallback jika order tidak valid
+        }
+
+        $query->orderBy($sortBy, $sortOrder);
 
         // Eksekusi query dengan paginasi
         $pengajuanBerkas = $query->orderBy('updated_at', 'desc')
@@ -106,13 +127,14 @@ class PengajuanBerkasController extends Controller
             'deskripsi' => 'nullable|string|max:255',
         ]);
 
-        // Pastikan status_baru adalah status yang valid (opsional, tapi disarankan)
+        // Tambahkan 'BERKAS TIDAK LENGKAP' ke dalam daftar
         $validStatus = [
             'JANJI TEMU DIKONFIRMASI',
             'BERKAS DITERIMA',
             'VERIFIKASI BERKAS',
             'SEDANG DIPROSES',
             'SELESAI',
+            'BERKAS TIDAK LENGKAP', // <<< STATUS BARU
         ];
 
         if (!in_array($request->status_baru, $validStatus)) {
@@ -161,12 +183,24 @@ class PengajuanBerkasController extends Controller
             });
         });
 
-        // Terapkan filter dropdown (yang sudah ada)
+        // Terapkan filter dropdown
         $query->when($request->filled('status_berkas'), function ($q) use ($request) {
             return $q->where('status_berkas', $request->status_berkas);
         }, function ($q) {
-            // Default filter
-            return $q->whereNotIn('status_berkas', ['JANJI TEMU DIBUAT', 'DITOLAK']);
+            // Jika user TIDAK MEMILIH status (Tampilan Awal / Default View)
+            // Tampilkan semua yang "Aktif" / "On Progress"
+            // TAPI KECUALIKAN: 
+            // 1. 'JANJI TEMU DIBUAT' (karena ini urusan bagian Booking, bukan Pengajuan)
+            // 2. 'DITOLAK' (sudah selesai/gagal)
+            // 3. 'SELESAI' (sudah beres)
+            // 4. 'BERKAS TIDAK LENGKAP' (karena warga disuruh pulang, jadi tidak perlu dipantau di list aktif harian)
+            
+            return $q->whereNotIn('status_berkas', [
+                'JANJI TEMU DIBUAT', 
+                'DITOLAK', 
+                'SELESAI',
+                'BERKAS TIDAK LENGKAP', // <<< TAMBAHKAN INI AGAR TIDAK MUNCUL DI DEFAULT
+            ]); 
         });
 
         $query->when($request->filled('layanan_id'), function ($q) use ($request) {
@@ -176,6 +210,21 @@ class PengajuanBerkasController extends Controller
         $query->when($request->filled('petugas_id'), function ($q) use ($request) {
             return $q->where('petugas_id', $request->petugas_id);
         });
+
+        // Urutkan (Sorting)
+        $sortBy = $request->get('sort_by', 'jadwal_janji_temu'); // Default sort by tanggal janji temu
+        $sortOrder = $request->get('sort_order', 'asc'); // Default ascending
+
+        // Validasi kolom yang boleh disort
+        $validSortColumns = ['no_booking', 'jadwal_janji_temu', 'status_berkas', 'created_at'];
+        if (!in_array($sortBy, $validSortColumns)) {
+            $sortBy = 'jadwal_janji_temu'; // Fallback jika kolom tidak valid
+        }
+        if (!in_array($sortOrder, ['asc', 'desc'])) {
+            $sortOrder = 'asc'; // Fallback jika order tidak valid
+        }
+
+        $query->orderBy($sortBy, $sortOrder);
         // --- AKHIR LOGIKA FILTER ---
 
         // <<< PENTING: Gunakan get() BUKAN paginate() untuk PDF >>>

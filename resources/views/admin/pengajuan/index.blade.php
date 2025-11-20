@@ -80,6 +80,8 @@
                                             @elseif($booking->status_berkas == 'VERIFIKASI BERKAS') bg-indigo-100 text-indigo-800
                                             @elseif($booking->status_berkas == 'SEDANG DIPROSES') bg-purple-100 text-purple-800
                                             @elseif($booking->status_berkas == 'SELESAI') bg-green-100 text-green-800
+                                            @elseif($booking->status_berkas == 'BERKAS TIDAK LENGKAP') bg-orange-100 text-orange-800 {{-- <<< WARNA ORANYE --}}
+                                            @elseif($booking->status_berkas == 'DITOLAK') bg-red-100 text-red-800
                                             @else bg-gray-100 text-gray-800
                                             @endif
                                         ">

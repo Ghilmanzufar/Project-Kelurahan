@@ -106,6 +106,16 @@
                         </svg>
                         <span class="ml-3" x-show="!isSidebarMinimized">Data Warga</span>
                     </a>
+
+                    <a href="{{ route('admin.booking.scan') }}" 
+                       class="flex items-center py-3 px-6 text-gray-400 hover:bg-gray-700 hover:text-white
+                       {{ request()->routeIs('admin.booking.scan') ? 'bg-gray-700 text-white' : '' }}"
+                       :class="isSidebarMinimized ? 'justify-center' : ''">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        </svg>
+                        <span class="ml-3" x-show="!isSidebarMinimized">Scan QR Code</span>
+                    </a>
                 @endcan
                 
                 {{-- 3. Gate 'kelola-konten' (Hanya Super Admin & Petugas Layanan) --}}
@@ -236,5 +246,94 @@
             </main>
         </div>
     </div>
+    {{-- =============================================== --}}
+    {{-- <<< SISTEM NOTIFIKASI REAL-TIME (POLLING) >>> --}}
+    {{-- =============================================== --}}
+    <div x-data="notificationSystem()" x-init="startPolling()" 
+         class="fixed top-4 right-4 z-50 flex flex-col space-y-4 w-80">
+        
+        {{-- Template Toast Notifikasi --}}
+        <template x-for="notif in notifications" :key="notif.id">
+            <div x-show="true" 
+                 x-transition:enter="transform ease-out duration-300 transition"
+                 x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                 x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                 x-transition:leave="transition ease-in duration-100"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden border-l-4 border-green-500">
+                <div class="p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            {{-- Ikon Lonceng --}}
+                            <svg class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 w-0 flex-1 pt-0.5">
+                            <p class="text-sm font-medium text-gray-900">Booking Baru!</p>
+                            <p class="mt-1 text-sm text-gray-500" x-text="notif.data.nama_pemohon + ' mengajukan ' + notif.data.layanan"></p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0 flex">
+                            <button @click="removeNotification(notif.id)" class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                                <span class="sr-only">Close</span>
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        function notificationSystem() {
+            return {
+                notifications: [],
+                
+                startPolling() {
+                    // Cek notifikasi setiap 5 detik
+                    setInterval(() => {
+                        this.fetchNotifications();
+                    }, 5000);
+                },
+
+                fetchNotifications() {
+                    fetch('{{ route("admin.notifications.unread") }}', {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        if(response.ok) return response.json();
+                        throw new Error('Network response was not ok.');
+                    })
+                    .then(data => {
+                        if (data.length > 0) {
+                            // Tambahkan notifikasi baru ke array
+                            data.forEach(notif => {
+                                this.notifications.push(notif);
+                                // Putar suara notifikasi (opsional)
+                                // new Audio('/path/to/sound.mp3').play(); 
+                                
+                                // Hilangkan otomatis setelah 10 detik
+                                setTimeout(() => {
+                                    this.removeNotification(notif.id);
+                                }, 10000);
+                            });
+                        }
+                    })
+                    .catch(error => console.log('Polling error:', error));
+                },
+
+                removeNotification(id) {
+                    this.notifications = this.notifications.filter(n => n.id !== id);
+                }
+            }
+        }
+    </script>
 </body>
 </html>

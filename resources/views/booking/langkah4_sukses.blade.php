@@ -21,14 +21,25 @@
                 </p>
             </div>
 
-            {{-- Kotak Nomor Booking --}}
+            {{-- Kotak Nomor Booking & QR Code --}}
             <div class="mt-8 bg-primary-50 rounded-xl p-6 border-2 border-primary-100 border-dashed relative overflow-hidden group hover:border-primary-300 transition-colors duration-300">
                 <div class="absolute top-0 left-0 w-full h-1 bg-primary-500"></div>
                 
-                <h3 class="text-sm font-medium text-primary-600 uppercase tracking-wider mb-2">Nomor Booking Anda</h3>
+                <h3 class="text-sm font-medium text-primary-600 uppercase tracking-wider mb-4">Tunjukkan QR Code Ini Kepada Petugas</h3>
+                
+                {{-- =============================================== --}}
+                {{-- <<< QR CODE GENERATOR >>> --}}
+                {{-- =============================================== --}}
+                <div class="flex justify-center mb-6">
+                    <div class="p-4 bg-white rounded-lg shadow-sm">
+                        {{-- Generate QR Code dari Nomor Booking --}}
+                        {!! QrCode::size(160)->generate($nomorBooking) !!}
+                    </div>
+                </div>
+                {{-- =============================================== --}}
                 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <span id="booking-code" class="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight font-mono selection:bg-primary-200 selection:text-primary-900">
+                    <span id="booking-code" class="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight font-mono selection:bg-primary-200 selection:text-primary-900">
                         {{ $nomorBooking }}
                     </span>
                     
@@ -55,7 +66,7 @@
                 <ul class="space-y-3">
                     <li class="flex items-start">
                         <span class="flex-shrink-0 h-5 w-5 flex items-center justify-center rounded-full bg-primary-100 text-primary-600 text-xs font-bold mt-0.5 mr-3">1</span>
-                        <span class="text-sm text-gray-600">Simpan <strong>Nomor Booking</strong> ini (Screenshot halaman ini atau cek email).</span>
+                        <span class="text-sm text-gray-600">Simpan <strong>QR Code</strong> atau Nomor Booking ini (Screenshot layar ini).</span>
                     </li>
                     <li class="flex items-start">
                         <span class="flex-shrink-0 h-5 w-5 flex items-center justify-center rounded-full bg-primary-100 text-primary-600 text-xs font-bold mt-0.5 mr-3">2</span>
@@ -63,7 +74,7 @@
                     </li>
                     <li class="flex items-start">
                         <span class="flex-shrink-0 h-5 w-5 flex items-center justify-center rounded-full bg-primary-100 text-primary-600 text-xs font-bold mt-0.5 mr-3">3</span>
-                        <span class="text-sm text-gray-600">Tunjukkan Nomor Booking dan serahkan <strong>Berkas Fisik (Asli & Fotokopi)</strong> kepada petugas di loket.</span>
+                        <span class="text-sm text-gray-600">Tunjukkan QR Code ini kepada petugas di loket untuk <strong>Check-in Otomatis</strong>.</span>
                     </li>
                 </ul>
             </div>

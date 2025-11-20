@@ -10,6 +10,8 @@ use App\Models\Warga; // <<< TAMBAHKAN INI
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use App\Notifications\BookingBaruNotification;
+use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon; // Pastikan ini di-import untuk format tanggal
 use Illuminate\Support\Facades\DB;
 
@@ -28,17 +30,11 @@ class BookingController extends Controller
     }
 
     /**
-     * Menampilkan halaman Langkah 1: Pilih Petugas & Jadwal
+     * Menampilkan halaman Langkah 1: Pilih Jadwal (Tanpa Petugas)
      */
     public function showStep1(Layanan $layanan)
     {
-        // 1. Ambil Petugas (Real dari Database)
-        // Kita cari user yang role-nya 'petugas_layanan' dan statusnya 'aktif'
-        $petugasTersedia = User::where('role', 'petugas_layanan')
-                                ->where('status', 'aktif')
-                                ->get();
-
-        // 2. Generate Tanggal (2 Minggu ke depan)
+        // 1. Generate Tanggal (2 Minggu ke depan)
         $dates = [];
         $startDate = Carbon::now();
 
@@ -47,78 +43,72 @@ class BookingController extends Controller
             $startDate->addDay();
         }
 
-        // Loop untuk 14 hari ke depan
         for ($i = 0; $i < 14; $i++) {
             $date = $startDate->copy()->addDays($i);
             $status = 'available';
 
-            // Logika Libur: Sabtu & Minggu
             if ($date->isWeekend()) {
                 $status = 'libur';
             }
 
-            // (Opsional) Anda bisa menambahkan array tanggal merah di sini
-            // if (in_array($date->format('Y-m-d'), ['2025-12-25'])) $status = 'libur';
-
             $dates[] = [
-                'val' => $date->format('Y-m-d'), // Value untuk input radio (2025-11-20)
-                'day_name' => $date->locale('id')->isoFormat('ddd'), // Nama hari pendek (Sen, Sel)
-                'day_num' => $date->format('d'), // Tanggal (20)
-                'status' => $status, // Status ketersediaan
+                'val' => $date->format('Y-m-d'),
+                'day_name' => $date->locale('id')->isoFormat('ddd'),
+                'day_num' => $date->format('d'),
+                'status' => $status,
             ];
         }
 
-        // 3. Definisi Slot Waktu (Bisa dibuat dinamis nanti)
-        $timeSlots = [
-            'Pagi' => ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00'],
-            'Siang' => ['13:00', '13:30', '14:00', '14:30'],
+        // 2. Definisi Sesi (Pagi & Siang) - Tanpa Jam Spesifik
+        // Kita gunakan array sederhana
+        $sessions = [
+            [
+                'id' => 'Sesi Pagi',
+                'label' => 'Sesi Pagi',
+                'jam' => '08:00 - 12:00',
+                'desc' => 'Kuota tersisa: Tersedia' // Nanti bisa didinamiskan
+            ],
+            [
+                'id' => 'Sesi Siang',
+                'label' => 'Sesi Siang',
+                'jam' => '13:00 - 15:00',
+                'desc' => 'Kuota tersisa: Tersedia'
+            ],
         ];
 
-        // ===============================================
-        // <<< TAMBAHAN BARU: WAKTU SEKARANG >>>
-        // ===============================================
+        // Kirim data ke view (HAPUS variabel $petugasTersedia)
         $serverNow = Carbon::now();
-        $currentDate = $serverNow->format('Y-m-d'); // Contoh: 2025-11-17
-        $currentTime = $serverNow->format('H:i');   // Contoh: 12:30
-        // ===============================================
-
         return view('booking.langkah1_pilih_jadwal', [
             'layanan' => $layanan,
-            'petugasTersedia' => $petugasTersedia,
             'dates' => $dates,
-            'timeSlots' => $timeSlots,
-            'currentDate' => $currentDate, 
-            'currentTime' => $currentTime, 
+            'sessions' => $sessions, // Ganti $timeSlots jadi $sessions
+            'currentDate' => $serverNow->format('Y-m-d'),
+            'currentTime' => $serverNow->format('H:i'),
         ]);
     }
-    /**
-     * Menyimpan data Langkah 1 ke session dan lanjut ke Langkah 2.
-     * Nanti akan ada validasi input di sini.
-     */
+
+
     public function storeStep1(Request $request)
     {
-        // Validasi input (akan ditambahkan lebih detail nanti)
+        // Validasi input (Hapus 'petugas_id')
         $request->validate([
             'layanan_id' => 'required|exists:layanan,id',
-            'petugas_id' => 'required', // Kita tidak validasi exists:users,id dulu untuk dummy
             'tanggal_kunjungan' => 'required|date',
             'waktu_kunjungan' => 'required|string',
         ]);
 
         // Simpan data ke session
         Session::put('booking.layanan_id', $request->layanan_id);
-        Session::put('booking.petugas_id', $request->petugas_id);
         Session::put('booking.tanggal_kunjungan', $request->tanggal_kunjungan);
         Session::put('booking.waktu_kunjungan', $request->waktu_kunjungan);
+        
+        // Hapus session petugas lama jika ada (bersih-bersih)
+        Session::forget('booking.petugas_id');
+        Session::forget('booking.petugas_nama');
 
-        // Ambil nama layanan dan petugas untuk tampilan konfirmasi di step 2
+        // Ambil nama layanan dan simpan ke session untuk ditampilkan di step selanjutnya
         $layanan = Layanan::find($request->layanan_id);
-        $petugas = User::find($request->petugas_id); // Asumsi user sudah ada
-        if (!$petugas) { // Untuk dummy, jika tidak ada user asli
-             $petugas = (object)['id' => $request->petugas_id, 'nama_lengkap' => 'Petugas Dummy ' . $request->petugas_id, 'jabatan' => 'Staff'];
-        }
         Session::put('booking.layanan_nama', $layanan->nama_layanan);
-        Session::put('booking.petugas_nama', $petugas->nama_lengkap);
 
         return redirect()->route('booking.step2');
     }
@@ -220,62 +210,82 @@ class BookingController extends Controller
         }
 
         try {
-            DB::beginTransaction(); // Mulai transaksi database agar aman
+            DB::beginTransaction(); 
 
-            // 3. Update atau Buat Data Warga (Table: warga)
-            // Kita gunakan updateOrCreate agar jika NIK sudah ada, datanya di-update (misal alamat baru)
-            // Jika belum ada, buat baru.
+            // 3. Update atau Buat Data Warga
             $warga = Warga::updateOrCreate(
-                ['nik' => $bookingData['nik']], // Kunci pencarian (NIK)
+                ['nik' => $bookingData['nik']], 
                 [
                     'nama_lengkap'    => $bookingData['nama_lengkap'],
-                    'no_hp'           => $bookingData['no_hp'],          // Sesuai key session dari storeStep2
+                    'tanggal_lahir'   => $bookingData['tanggal_lahir'], 
+                    'no_hp'           => $bookingData['no_hp'],          
                     'email'           => $bookingData['email'],
-                    'alamat_terakhir' => $bookingData['alamat_terakhir'] // Sesuai key session dari storeStep2
+                    'alamat_terakhir' => $bookingData['alamat_terakhir']
                 ]
             );
 
-            // 4. Generate Nomor Booking Unik
-            // Format: BKG-YYYYMMDD-XXX (Contoh: BKG-20251117-005)
+            // 4. Generate Nomor Booking
             $dateCode = now()->format('Ymd');
             $lastBooking = Booking::whereDate('created_at', today())->latest()->first();
             $sequence = $lastBooking ? intval(substr($lastBooking->no_booking, -3)) + 1 : 1;
             $noBooking = 'BKG-' . $dateCode . '-' . str_pad($sequence, 3, '0', STR_PAD_LEFT);
 
-            // 5. Gabungkan Tanggal dan Waktu
-            $jadwalTemu = Carbon::parse($bookingData['tanggal_kunjungan'] . ' ' . $bookingData['waktu_kunjungan']);
+            // ===============================================
+            // <<< PERBAIKAN UTAMA DI SINI >>>
+            // Menerjemahkan "Sesi" menjadi "Jam" untuk Database
+            // ===============================================
+            $waktu = $bookingData['waktu_kunjungan']; // Isinya "Sesi Pagi" atau "Sesi Siang"
+            $jamDefault = '08:00:00'; // Default jika error
 
-            // 6. Simpan Data Booking (Table: booking)
+            if ($waktu == 'Sesi Pagi') {
+                $jamDefault = '09:00:00'; // Kita set jam 9 pagi untuk sesi pagi
+            } elseif ($waktu == 'Sesi Siang') {
+                $jamDefault = '13:00:00'; // Kita set jam 1 siang untuk sesi siang
+            } else {
+                // Fallback jika masih menggunakan format jam lama (misal: 10:30)
+                $jamDefault = $waktu; 
+            }
+
+            // Gabungkan Tanggal dan Jam yang sudah dikonversi
+            $jadwalTemu = Carbon::parse($bookingData['tanggal_kunjungan'] . ' ' . $jamDefault);
+            // ===============================================
+
+            // 6. Simpan Data Booking
             $booking = Booking::create([
                 'no_booking'        => $noBooking,
-                'warga_id'          => $warga->id, // Ambil ID dari warga yang baru dibuat/diupdate
+                'warga_id'          => $warga->id, 
                 'layanan_id'        => $bookingData['layanan_id'],
-                'petugas_id'        => $bookingData['petugas_id'],
+                'petugas_id'        => $bookingData['petugas_id'] ?? null, 
                 'jadwal_janji_temu' => $jadwalTemu,
-                'status_berkas'     => 'JANJI TEMU DIBUAT', // Status awal default
+                'status_berkas'     => 'JANJI TEMU DIBUAT', 
                 'catatan_internal'  => null,
             ]);
 
-            // 7. Catat Log Status Awal (Table: booking_status_logs)
+            // 7. Catat Log Status Awal
             BookingStatusLog::create([
                 'booking_id' => $booking->id,
                 'status'     => 'JANJI TEMU DIBUAT',
-                'deskripsi'  => 'Pendaftaran janji temu berhasil dilakukan secara online.',
-                'petugas_id' => null, // Null karena dibuat oleh sistem/warga
+                'deskripsi'  => 'Pendaftaran janji temu berhasil dilakukan secara online (Sesi: ' . $waktu . ').',
+                'petugas_id' => null, 
             ]);
 
-            DB::commit(); // Simpan perubahan ke database
+            DB::commit(); 
 
+            // Kirim notifikasi ke SEMUA 'petugas_layanan' dan 'super_admin'
+            $admins = User::whereIn('role', ['super_admin', 'petugas_layanan'])->get();
+            Notification::send($admins, new BookingBaruNotification($booking));
+            // ===============================================
+            
             // 8. Bersihkan Session Booking
             Session::forget('booking');
 
-            // 9. Redirect ke Halaman Sukses dengan membawa data No Booking
+            // 9. Redirect ke Halaman Sukses
             return redirect()->route('booking.success', ['no_booking' => $noBooking]);
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Batalkan jika ada error
-            // Log error untuk developer (opsional: Log::error($e->getMessage());)
-            return back()->with('error', 'Terjadi kesalahan sistem saat menyimpan booking. Silakan coba lagi.');
+            DB::rollBack(); 
+            // Tampilkan pesan error asli sementara untuk debugging jika masih gagal
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

@@ -25,7 +25,7 @@ class Warga extends Model
     protected $fillable = [
         'nik',
         'nama_lengkap',
-        'tanggal_lahir', // <<< Pastikan ini ada
+        'tanggal_lahir', 
         'no_hp',
         'email',
         'alamat_terakhir',

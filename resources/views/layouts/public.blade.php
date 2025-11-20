@@ -21,10 +21,10 @@
     <header class="bg-primary-900 sticky top-0 z-50 shadow-sm" x-data="{ open: false }">
         <nav class="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
             <div class="flex lg:flex-1">
-                <a href="/" class="-m-1.5 p-1.5">
-                    <span class="sr-only">Kelurahan Klender</span>
-                    <span class="text-lg font-bold text-white">KEL. KLENDER</span>
-                </a>
+                <a href="{{ route('beranda') }}">
+                        {{-- KODE LOGO BARU --}}
+                        <img class="block h-12 w-auto" src="{{ asset('images/logo-kelurahan.png') }}" alt="Logo Kelurahan">
+                    </a>
             </div>
 
             <div class="flex lg:hidden">
@@ -45,7 +45,7 @@
                 </a>
                 <a href="{{ route('layanan.index') }}" class="text-sm font-semibold leading-6 text-white hover:text-accent-300 transition duration-300">Jenis Layanan</a>
                 <a href="{{ route('lacak.index') }}" class="text-sm font-semibold leading-6 text-white hover:text-accent-300 transition duration-300">Lacak Pengajuan</a>
-                <a href="#" class="text-sm font-semibold leading-6 text-white hover:text-accent-300 transition duration-300">Bantuan & Chatbot</a>
+                <a href="{{ route('bantuan.index') }}" class="text-sm font-semibold leading-6 text-white hover:text-accent-300 transition duration-300">Bantuan & Chatbot</a>
                 <a href="{{ route('pengumuman.index') }}" class="text-sm font-semibold leading-6 text-white hover:text-accent-300 transition duration-300">Berita</a>
                 <a href="{{ route('kontak') }}" class="text-sm font-semibold leading-6 text-white hover:text-accent-300 transition duration-300">Kontak Kami</a>
             </div>
@@ -81,7 +81,7 @@
                                 Booking Online
                             </a>
                             <a href="{{ route('lacak.index') }}" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-primary-800 transition duration-300">Lacak Pengajuan</a>
-                            <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-primary-800 transition duration-300">Bantuan & Chatbot</a>
+                            <a href="{{ route('bantuan.index') }}" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-primary-800 transition duration-300">Bantuan & Chatbot</a>
                             <a href="{{ route('pengumuman.index') }}" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-primary-800 transition duration-300">Berita</a>
                             <a href="{{ route('kontak') }}" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-primary-800 transition duration-300">Kontak Kami</a>
                         </div>
@@ -128,7 +128,7 @@
                                 {{-- PERUBAHAN: hover:text-accent-300 (Emas Muda) --}}
                                 <li><a href="{{ route('pengumuman.index') }}" class="text-sm leading-6 text-primary-200 hover:text-accent-300 transition duration-300">Berita</a></li>
                                 <li><a href="{{ route('lacak.index') }}" class="text-sm leading-6 text-primary-200 hover:text-accent-300 transition duration-300">Lacak Pengajuan</a></li>
-                                <li><a href="#" class="text-sm leading-6 text-primary-200 hover:text-accent-300 transition duration-300">Bantuan</a></li>
+                                <li><a href="{{ route('bantuan.index') }}" class="text-sm leading-6 text-primary-200 hover:text-accent-300 transition duration-300">Bantuan</a></li>
                             </ul>
                         </div>
                     </div>

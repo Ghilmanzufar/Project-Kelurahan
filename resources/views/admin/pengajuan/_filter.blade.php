@@ -39,15 +39,38 @@
                         @endforeach
                     </select>
                 </div>
+                
+                <div class="flex flex-col">
+                    <label for="start_date" class="text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                    <input type="date" id="start_date" name="start_date" 
+                        value="{{ request('start_date') }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 text-sm">
+                </div>
 
-                {{-- Filter Petugas --}}
-                <div>
-                    <label for="petugas_id" class="block text-sm font-medium text-gray-700">Petugas</label>
-                    <select id="petugas_id" name="petugas_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="">Semua Petugas</option>
-                        @foreach ($allPetugas as $petugas)
-                            <option value="{{ $petugas->id }}" @if(request('petugas_id') == $petugas->id) selected @endif>{{ $petugas->nama_lengkap }}</option>
-                        @endforeach
+                <div class="flex flex-col">
+                    <label for="end_date" class="text-sm font-medium text-gray-700 mb-1">Tanggal Akhir</label>
+                    <input type="date" id="end_date" name="end_date" 
+                        value="{{ request('end_date') }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 text-sm">
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="sort_by" class="text-sm font-medium text-gray-700 mb-1">Urutkan Berdasarkan</label>
+                    <select id="sort_by" name="sort_by" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 text-sm">
+                        <option value="jadwal_janji_temu" @if(request('sort_by', 'jadwal_janji_temu') == 'jadwal_janji_temu') selected @endif>Jadwal Janji Temu</option>
+                        <option value="created_at" @if(request('sort_by') == 'created_at') selected @endif>Tanggal Pengajuan</option>
+                        <option value="no_booking" @if(request('sort_by') == 'no_booking') selected @endif>Nomor Booking</option>
+                        <option value="status_berkas" @if(request('sort_by') == 'status_berkas') selected @endif>Status Berkas</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="sort_order" class="text-sm font-medium text-gray-700 mb-1">Urutan</label>
+                    <select id="sort_order" name="sort_order" 
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50 text-sm">
+                        <option value="asc" @if(request('sort_order', 'asc') == 'asc') selected @endif>Ascending (A-Z, Lama-Baru)</option>
+                        <option value="desc" @if(request('sort_order') == 'desc') selected @endif>Descending (Z-A, Baru-Lama)</option>
                     </select>
                 </div>
 

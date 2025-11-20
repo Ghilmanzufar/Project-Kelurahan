@@ -68,10 +68,6 @@
                             <dd class="ml-2">{{ $bookingData['layanan_nama'] ?? '-' }}</dd>
                         </div>
                         <div>
-                            <dt class="font-medium text-primary-800">Petugas:</dt>
-                            <dd class="ml-2">{{ $bookingData['petugas_nama'] ?? '-' }}</dd>
-                        </div>
-                        <div>
                             <dt class="font-medium text-primary-800">Tanggal:</dt>
                             <dd class="ml-2">
                                 @if(isset($bookingData['tanggal_kunjungan']))

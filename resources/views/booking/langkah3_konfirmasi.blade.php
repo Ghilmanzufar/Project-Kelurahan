@@ -100,6 +100,24 @@
                 </div>
             @endif
 
+            {{-- Menampilkan Pesan Error Sistem (Flash Message) --}}
+            @if (session('error'))
+                <div class="mb-6 rounded-md bg-red-50 p-4 border-l-4 border-red-500">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Terjadi Kesalahan</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                {{ session('error') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
             <form action="{{ route('booking.storeBooking') }}" method="POST" x-data="{ agreed: false }">
                 @csrf
                 
@@ -120,10 +138,7 @@
                                     <dt class="text-xs text-gray-500 uppercase tracking-wide">Layanan</dt>
                                     <dd class="mt-1 font-medium text-gray-900 text-base">{{ $bookingData['layanan_nama'] ?? 'N/A' }}</dd>
                                 </div>
-                                <div>
-                                    <dt class="text-xs text-gray-500 uppercase tracking-wide">Petugas</dt>
-                                    <dd class="mt-1 font-medium text-gray-900 text-base">{{ $bookingData['petugas_nama'] ?? 'N/A' }}</dd>
-                                </div>
+                                
                                 <div class="pt-4 border-t border-primary-200">
                                     <dt class="text-xs text-gray-500 uppercase tracking-wide">Waktu Pertemuan</dt>
                                     <dd class="mt-1 font-bold text-primary-700 text-lg">

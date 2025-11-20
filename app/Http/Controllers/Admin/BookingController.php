@@ -117,4 +117,72 @@ class BookingController extends Controller
         // 3. Redirect kembali dengan pesan sukses
         return redirect()->route('admin.booking.index')->with('success', 'Booking berhasil ditolak.');
     }
+
+    /**
+     * Menampilkan halaman Scanner QR Code.
+     */
+    public function scan()
+    {
+        return view('admin.booking.scan');
+    }
+
+    /**
+     * Memproses data QR Code yang discan via AJAX.
+     */
+    public function verifyQr(Request $request)
+    {
+        $request->validate([
+            'no_booking' => 'required|string'
+        ]);
+
+        // 1. Cari Data Booking
+        $booking = Booking::with(['warga', 'layanan'])
+                    ->where('no_booking', $request->no_booking)
+                    ->first();
+
+        if (!$booking) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Data Booking Tidak Ditemukan!'
+            ], 404);
+        }
+
+        // 2. Validasi Tanggal (Opsional: Hanya boleh scan jika jadwalnya hari ini)
+        if (!$booking->jadwal_janji_temu->isToday()) {
+             return response()->json([
+                'status' => 'error',
+                'message' => 'Jadwal Booking Bukan Hari Ini! (' . $booking->jadwal_janji_temu->format('d M Y') . ')'
+            ], 400);
+        }
+
+        // 3. Cek Status (Jangan update jika sudah selesai/ditolak)
+        if (in_array($booking->status_berkas, ['SELESAI', 'DITOLAK'])) {
+             return response()->json([
+                'status' => 'warning',
+                'message' => 'Booking ini sudah berstatus: ' . $booking->status_berkas
+            ], 200); // 200 OK tapi warning
+        }
+
+        // 4. Update Status Otomatis (Check-in)
+        // Kita ubah jadi 'BERKAS DITERIMA' (artinya warga sudah datang dan lapor)
+        $booking->update(['status_berkas' => 'BERKAS DITERIMA']);
+
+        // 5. Catat Log
+        BookingStatusLog::create([
+            'booking_id' => $booking->id,
+            'status' => 'BERKAS DITERIMA',
+            'deskripsi' => 'Warga melakukan Check-in via QR Code Scanner di loket.',
+            'petugas_id' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Check-in Berhasil! Status diperbarui.',
+            'data' => [
+                'nama' => $booking->warga->nama_lengkap,
+                'layanan' => $booking->layanan->nama_layanan,
+                'jam' => $booking->jadwal_janji_temu->format('H:i') . ' WIB'
+            ]
+        ]);
+    }
 }

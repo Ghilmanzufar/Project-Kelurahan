@@ -113,7 +113,10 @@ Route::middleware(['auth', 'role.check'])->prefix('admin')->name('admin.')->grou
     Route::prefix('booking')->name('booking.')->group(function () {
         Route::get('/', [AdminBookingController::class, 'index'])->name('index'); // <<< UBAH DI SINI
         Route::post('/{booking}/konfirmasi', [AdminBookingController::class, 'konfirmasi'])->name('konfirmasi'); // <<< DAN DI SINI
-        Route::post('/{booking}/tolak', [AdminBookingController::class, 'tolak'])->name('tolak'); // <<< DAN DI SINI
+        Route::post('/{booking}/tolak', [AdminBookingController::class, 'tolak'])->name('tolak');
+        // <<< TAMBAHKAN RUTE SCAN INI >>>
+        Route::get('/scan-qr', [AdminBookingController::class, 'scan'])->name('scan');
+        Route::post('/scan-verify', [AdminBookingController::class, 'verifyQr'])->name('verify-qr'); // <<< DAN DI SINI
     });
 
     // ===============================================
@@ -167,6 +170,9 @@ Route::middleware(['auth', 'role.check'])->prefix('admin')->name('admin.')->grou
     // Rute Manajemen Pesan Kontak
     Route::get('/pesan', [App\Http\Controllers\Admin\PesanController::class, 'index'])->name('pesan.index');
     Route::delete('/pesan/{id}', [App\Http\Controllers\Admin\PesanController::class, 'destroy'])->name('pesan.destroy');
+
+    // Rute Cek Notifikasi (AJAX)
+    Route::get('/notifications/unread', [App\Http\Controllers\Admin\NotificationController::class, 'getUnread'])->name('notifications.unread');
 });
 
 // Ini mengimport rute autentikasi dari Breeze
