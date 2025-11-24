@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\PengumumanController as AdminPengumumanController
 use App\Http\Controllers\Admin\PetugasController as AdminPetugasController;
 use App\Http\Controllers\Admin\WargaController;
 use App\Http\Controllers\BantuanController;
-
+use App\Http\Controllers\ChatbotController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,7 +35,10 @@ use Illuminate\Support\Facades\Route;
 
 // Beranda
 Route::get('/', [HomeController::class, 'index'])->name('beranda');
-
+// Rute untuk mengetes koneksi ke Groq AI
+Route::get('/test-ai', [ChatbotController::class, 'testConnection']);
+// RUTE RESMI CHATBOT (Untuk diakses via AJAX Frontend)
+Route::post('/chat/send', [ChatbotController::class, 'sendMessage'])->name('chat.send');
 // Rute Layanan
 Route::get('/layanan', [LayananController::class, 'index'])->name('layanan.index');
 Route::get('/layanan/{layanan}', [LayananController::class, 'show'])->name('layanan.show');
@@ -173,6 +176,7 @@ Route::middleware(['auth', 'role.check'])->prefix('admin')->name('admin.')->grou
 
     // Rute Cek Notifikasi (AJAX)
     Route::get('/notifications/unread', [App\Http\Controllers\Admin\NotificationController::class, 'getUnread'])->name('notifications.unread');
+
 });
 
 // Ini mengimport rute autentikasi dari Breeze

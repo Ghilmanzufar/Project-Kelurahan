@@ -151,14 +151,192 @@
         </div>
     </footer>
 
-    {{-- =============================================== --}}
-    {{-- <<< TOMBOL CHAT (Menggunakan Warna Accent-500 / Emas) >>> --}}
-    {{-- =============================================== --}}
-    <button class="fixed bottom-4 right-4 bg-accent-500 text-white p-4 rounded-full shadow-lg z-50 transition-transform hover:scale-110 hover:bg-accent-600">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-3.86 8.25-8.625 8.25a9.76 9.76 0 01-2.53-.388 1.875 1.875 0 01-1.025-.618C7.83 19.24 7.333 18.25 7 17.25m-3.998.908l-.622-1.42V8.25a.75.75 0 01.75-.75h13.5a.75.75 0 01.75.75v7.688a1.875 1.875 0 01-1.649 1.84l-6.331.84c-.377.05-.754.074-1.13.074H8.25a.75.75 0 01-.75-.75V8.25M3 16.812V8.25" />
-        </svg>
-    </button>
+    {{-- ================================================================== --}}
+    {{-- <<< FLOATING CHATBOT WIDGET (SiPentas Bot) >>> --}}
+    {{-- ================================================================== --}}
+    
+    <div x-data="chatBotData()" x-init="initChat()" class="fixed bottom-4 right-4 z-50 flex flex-col items-end font-sans">
+
+        {{-- 1. JENDELA CHAT (Muncul jika isOpen = true) --}}
+        <div x-show="isOpen" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-10 scale-95"
+             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+             x-transition:leave-end="opacity-0 translate-y-10 scale-95"
+             class="mb-4 w-full max-w-[350px] sm:w-[400px] bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col"
+             style="height: 500px; max-height: 80vh; display: none;"> {{-- Style display:none agar tidak kedip saat load --}}
+
+            {{-- Header Jendela Chat --}}
+            <div class="bg-primary-600 p-4 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    {{-- Avatar Robot --}}
+                    <div class="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm p-1">
+                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white">
+                          <path d="M16.5 7.5h-9v9h9v-9z" opacity=".3"/><path d="M21.75 10.5h-1.5v-3a2.25 2.25 0 00-2.25-2.25h-1.5v-3a2.25 2.25 0 00-2.25-2.25h-4.5a2.25 2.25 0 00-2.25 2.25v3h-1.5A2.25 2.25 0 003.75 7.5v3H2.25A2.25 2.25 0 000 12.75v4.5a2.25 2.25 0 002.25 2.25h1.5v3a2.25 2.25 0 002.25 2.25h4.5a2.25 2.25 0 002.25-2.25v-3h1.5a2.25 2.25 0 002.25-2.25v-4.5a2.25 2.25 0 00-2.25-2.25zM6.75 2.25h4.5v3h-4.5v-3zm9 15h-1.5v3h-4.5v-3h-1.5v-4.5h7.5v4.5zm4.5-4.5h-1.5v-3h1.5v3zm-18 0h-1.5v-3h1.5v3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">SiPentas Bot</h3>
+                        <p class="text-xs text-primary-100 flex items-center">
+                            <span class="inline-block w-2 h-2 bg-green-400 rounded-full mr-1.5 animate-pulse"></span>
+                            Online - Asisten Pertanahan
+                        </p>
+                    </div>
+                </div>
+                {{-- Tombol Tutup (X) --}}
+                <button @click="toggleChat()" class="text-white/80 hover:text-white focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Area Riwayat Pesan (Scrollable) --}}
+            <div x-ref="chatContainer" class="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-4">
+                
+                {{-- Looping pesan dari array 'messages' --}}
+                <template x-for="(msg, index) in messages" :key="index">
+                    <div class="flex flex-col" :class="msg.isBot ? 'items-start' : 'items-end'">
+                        <div class="max-w-[85%] rounded-2xl px-4 py-3 shadow-sm text-sm leading-relaxed"
+                             :class="msg.isBot ? 'bg-white text-gray-800 rounded-tl-none border border-gray-100' : 'bg-primary-600 text-white rounded-tr-none'">
+                            {{-- Menampilkan teks pesan (mendukung newline \n) --}}
+                            <p class="whitespace-pre-wrap" x-text="msg.text"></p>
+                        </div>
+                        {{-- Waktu pesan (opsional, bisa dikembangkan nanti) --}}
+                        <span class="text-[10px] text-gray-400 mt-1.5 mx-1" x-text="msg.isBot ? 'SiPentas Bot' : 'Anda'"></span>
+                    </div>
+                </template>
+
+                {{-- Indikator Loading (Muncul saat isLoading = true) --}}
+                <div x-show="isLoading" class="flex items-start animate-pulse">
+                    <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
+                        <div class="flex space-x-1.5">
+                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Area Input Pesan --}}
+            <div class="p-3 bg-white border-t border-gray-100">
+                <form @submit.prevent="sendMessage" class="flex items-center space-x-2 relative">
+                    <input 
+                        type="text" 
+                        x-model="userInput"
+                        :disabled="isLoading"
+                        placeholder="Ketik pertanyaan pertanahan..." 
+                        class="w-full border-gray-200 rounded-full py-3 pl-5 pr-12 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-gray-50 text-sm"
+                    >
+                    <button 
+                        type="submit"
+                        :disabled="isLoading || userInput.trim() === ''"
+                        class="absolute right-2 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                    >
+                        {{-- Ikon Kirim --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 pl-0.5">
+                          <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        {{-- 2. TOMBOL PEMICU (TRIGGER BUTTON) --}}
+        <button @click="toggleChat()" 
+                class="bg-primary-600 text-white p-4 rounded-full shadow-lg hover:bg-primary-700 hover:scale-110 transition-all duration-300 focus:outline-none group relative z-50">
+            {{-- Ikon Chat Bubble --}}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            {{-- Badge Notifikasi Palsu (Pemanis) --}}
+            <span class="absolute top-0 right-0 block h-3 w-3 transform -translate-y-1/2 translate-x-1/2 rounded-full ring-2 ring-white bg-red-500 animate-pulse"></span>
+        </button>
+
+    </div>
+
+    {{-- SCRIPT LOGIKA (Alpine.js) --}}
+    <script>
+        function chatBotData() {
+            return {
+                isOpen: false,      // Status jendela chat (terbuka/tertutup)
+                userInput: '',      // Teks yang diketik user
+                isLoading: false,   // Status loading saat menunggu AI
+                messages: [],       // Array untuk menyimpan riwayat chat
+
+                // Fungsi inisialisasi (dijalankan saat halaman muat)
+                initChat() {
+                    // Tambahkan pesan pembuka dari Bot
+                    this.messages.push({
+                        text: "Halo! 👋 Saya SiPentas Bot, asisten virtual pertanahan Kelurahan Klender.\n\nAda yang bisa saya bantu terkait layanan atau persyaratan dokumen pertanahan hari ini?",
+                        isBot: true
+                    });
+                },
+
+                // Fungsi untuk buka/tutup jendela chat
+                toggleChat() {
+                    this.isOpen = !this.isOpen;
+                    this.scrollToBottom(); // Scroll ke bawah saat dibuka
+                },
+
+                // Fungsi Utama: Mengirim Pesan ke Backend Laravel
+                sendMessage() {
+                    const message = this.userInput.trim();
+                    if (message === '' || this.isLoading) return;
+
+                    // 1. Tampilkan pesan user di layar
+                    this.messages.push({ text: message, isBot: false });
+                    this.userInput = ''; // Kosongkan input
+                    this.isLoading = true; // Nyalakan loading
+                    this.scrollToBottom();
+
+                    // 2. Kirim ke Rute API Laravel via FETCH
+                    fetch("{{ route('chat.send') }}", { // Memanggil rute POST yang kita buat tadi
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content') // Wajib untuk keamanan Laravel
+                        },
+                        body: JSON.stringify({ message: message }) // Kirim data pesan
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        // 3. Terima balasan AI dan tampilkan
+                        if (data.status === 'success') {
+                            this.messages.push({ text: data.message, isBot: true });
+                        } else {
+                             this.messages.push({ text: "Maaf, terjadi kesalahan sistem.", isBot: true });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.messages.push({ text: "Maaf, saya tidak dapat terhubung ke server saat ini. Mohon periksa koneksi internet Anda.", isBot: true });
+                    })
+                    .finally(() => {
+                        // 4. Matikan loading & scroll ke bawah apapun hasilnya
+                        this.isLoading = false;
+                        this.scrollToBottom();
+                    });
+                },
+
+                // Helper untuk auto-scroll ke pesan terakhir
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const container = this.$refs.chatContainer;
+                        container.scrollTop = container.scrollHeight;
+                    });
+                }
+            }
+        }
+    </script>
     
 </div> 
 
