@@ -59,14 +59,6 @@
                 @endforeach
             </div>
 
-            {{-- CTA Chatbot --}}
-            <div class="mt-16 text-center">
-                <p class="text-base font-semibold leading-7 text-gray-600">Masih belum menemukan jawaban?</p>
-                <button onclick="toggleChatbot()" class="mt-4 rounded-md bg-accent-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
-                    Tanya Asisten Virtual (Chatbot)
-                </button>
-            </div>
-
         </div>
     </div>
 </x-public-layout>
