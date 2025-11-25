@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use App\Models\Booking;
 use App\Models\Layanan;
 use App\Models\User; // Pastikan ini di-import
@@ -142,7 +143,7 @@ class BookingController extends Controller
             'nik'          => 'required|digits:16', // Wajib 16 digit angka
             'tanggal_lahir' => 'required|date|before:today', // Opsional: Jika ingin tetap divalidasi untuk keperluan verifikasi
             'nomor_hp'     => 'required|string|max:20', 
-            'email'        => 'nullable|email|max:255', // Boleh kosong sesuai migrasi
+            'email'        => 'required|email|max:255', // Boleh kosong sesuai migrasi
             'alamat'       => 'nullable|string|max:1000', // Boleh kosong sesuai migrasi (alamat_terakhir)
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
@@ -281,12 +282,12 @@ class BookingController extends Controller
                     // Kirim email ke alamat email warga
                     Mail::to($booking->warga->email)->send(new BookingSuccessMail($booking));
                     // Log sukses (opsional)
-                    \Log::info('Email booking berhasil dikirim ke: ' . $booking->warga->email);
+                    Log::info('Email booking berhasil dikirim ke: ' . $booking->warga->email);
                 }
             } catch (\Exception $e) {
                 // PENTING: Jangan biarkan error email membatalkan booking!
                 // Kita tangkap errornya, catat di log, tapi biarkan proses lanjut.
-                \Log::error('Gagal mengirim email booking: ' . $e->getMessage());
+                Log::error('Gagal mengirim email booking: ' . $e->getMessage());
                 // Opsional: bisa tambahkan flash message warning bahwa email gagal, tapi booking sukses.
             }
             
