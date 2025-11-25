@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\GroqService;
 use Illuminate\Http\Request;
 use App\Models\Layanan; 
+use Illuminate\Support\Facades\Log;
 
 class ChatbotController extends Controller
 {
@@ -135,6 +136,8 @@ EOT;
         return $contextString;
     }
 
+    // ... (namespace dan use di atas tetap sama)
+
     /**
      * Method resmi untuk menangani pesan dari Frontend (via AJAX POST).
      */
@@ -147,24 +150,96 @@ EOT;
 
         $userMessage = $request->input('message');
 
+        // --- DEBUG START ---
+        Log::info('=== CHATBOT DEBUG START (SMART RAG) ===');
+        Log::info('Pesan User Asli: ' . $userMessage);
+        // --- DEBUG END ---
+
         try {
-            // 2. Ambil Knowledge Base (RAG) - Sama seperti di testConnection
-            $knowledgeBaseData = $this->getKnowledgeBaseContext();
+            // ============================================================
+            // <<< LANGKAH 2: SMART RAG (FILTERING KATA KUNCI) >>>
+            // ============================================================
+            
+            // 2a. Daftar kata-kata sambung/umum (stopwords) yang akan diabaikan dalam pencarian
+            $stopwords = [
+                'apa', 'apakah', 'bagaimana', 'dimana', 'kapan', 'siapa', 'mengapa', 'kenapa',
+                'cara', 'syarat', 'prosedur', 'langkah', 'untuk', 'yang', 'di', 'ke', 'dari',
+                'pada', 'dalam', 'atau', 'dan', 'dengan', 'ini', 'itu', 'tersebut', 'saya',
+                'aku', 'kamu', 'anda', 'dia', 'mereka', 'kami', 'kita', 'mau', 'ingin',
+                'akan', 'sedang', 'sudah', 'tanya', 'dong', 'min', 'pak', 'bu', 'mas', 'mbak',
+                'kak', 'halo', 'hi', 'hai', 'selamat', 'pagi', 'siang', 'sore', 'malam',
+                'terima', 'kasih', 'tolong', 'bantu', 'mohon', 'bisa', 'boleh', 'ada',
+                'tidak', 'bukan', 'belum', 'ya', 'oke', 'baik'
+            ];
 
-            // 3. Siapkan Instruksi RAG - Sama seperti di testConnection
-            $ragInstruction = "\n\nINSTRUKSI KHUSUS (RAG):\n" .
-            "Di bawah ini saya lampirkan 'KNOWLEDGE BASE' yang berisi data faktual layanan di Kelurahan Klender.\n" .
-            "Tugasmu adalah menjawab pertanyaan pengguna dengan HANYA menggunakan informasi dari 'KNOWLEDGE BASE' tersebut.\n" .
-            "Jika informasi tidak ditemukan di dalam data tersebut, katakan dengan jujur bahwa informasi belum tersedia, jangan mengarang.\n\n" .
-            "--- AWAL KNOWLEDGE BASE ---\n" .
-            $knowledgeBaseData . 
-            "\n--- AKHIR KNOWLEDGE BASE ---\n";
+            // 2b. Bersihkan pesan: huruf kecil semua, hapus simbol selain huruf/angka/spasi
+            $cleanMessage = strtolower(preg_replace('/[^a-z0-9\s]/', '', $userMessage));
+            $words = explode(' ', $cleanMessage);
+            
+            // 2c. Filter kata kunci: hapus stopword dan kata yang terlalu pendek (< 3 huruf)
+            $keywords = array_filter($words, function($word) use ($stopwords) {
+                // strlen($word) > 2 artinya minimal 3 huruf (contoh: PBB, KTP itu 3 huruf, jadi masuk)
+                return !in_array($word, $stopwords) && strlen($word) > 2; 
+            });
 
-            // 4. Gabungkan System Prompt
+            // Reset array keys agar rapi (opsional, tapi baik untuk debugging)
+            $keywords = array_values($keywords); 
+
+            // --- DEBUG START ---
+            Log::info('Keywords Final untuk Pencarian: ' . json_encode($keywords));
+            // --- DEBUG END ---
+
+            // 2d. Logika Pengambilan Data RAG
+            $knowledgeBaseData = "";
+            $ragInstruction = "";
+
+            // Jika tidak ada kata kunci penting (misal cuma bilang "Halo"), JANGAN cari data.
+            if (empty($keywords)) {
+                // --- DEBUG START ---
+                Log::info('Kondisi: Keywords KOSONG. Tidak ada data RAG yang diambil.');
+                // --- DEBUG END ---
+                // Tidak ada instruksi RAG tambahan. AI hanya akan pakai System Prompt dasar.
+            } else {
+                // --- DEBUG START ---
+                Log::info('Kondisi: Keywords ADA. Mencari data relevan di database...');
+                // --- DEBUG END ---
+
+                // Panggil fungsi pencari data yang baru
+                $knowledgeBaseData = $this->getFilteredKnowledgeBase($keywords);
+                
+                if (empty($knowledgeBaseData)) {
+                     // --- DEBUG START ---
+                     Log::info('Hasil Pencarian: NIHIL. Tidak ada layanan yang cocok dengan keyword.');
+                     // --- DEBUG END ---
+                     // Beri instruksi khusus jika data tidak ditemukan
+                     $ragInstruction = "\n\nINSTRUKSI TAMBAHAN:\nPengguna menanyakan topik yang spesifik, TETAPI data detail mengenainya TIDAK DITEMUKAN dalam database layanan kita saat ini. Jawablah dengan sopan bahwa informasi detail belum tersedia di sistem, dan sarankan pengguna untuk datang langsung ke kantor kelurahan untuk konsultasi lebih lanjut.";
+                } else {
+                     // --- DEBUG START ---
+                     Log::info('Hasil Pencarian: DITEMUKAN. Panjang Data RAG: ' . strlen($knowledgeBaseData) . ' karakter.');
+                     // --- DEBUG END ---
+                     // Beri instruksi RAG standar jika data ditemukan
+                     $ragInstruction = "\n\nINSTRUKSI KHUSUS (RAG - DATA RELEVAN):\n" .
+                     "Gunakan HANYA data 'KNOWLEDGE BASE RELEVAN' di bawah ini sebagai sumber utamamu untuk menjawab.\n" .
+                     "--- AWAL KNOWLEDGE BASE RELEVAN ---\n" .
+                     $knowledgeBaseData . 
+                     "\n--- AKHIR KNOWLEDGE BASE RELEVAN ---\n";
+                }
+            }
+
+            // ============================================================
+            // <<< LANGKAH 3: PENYUSUNAN PESAN & PENGIRIMAN >>>
+            // ============================================================
+
+            // 3a. Gabungkan System Prompt dasar dengan instruksi RAG (jika ada)
             $fullSystemMessage = $this->systemPrompt . $ragInstruction;
 
-            // 5. Susun Pesan (TODO: Nanti kita tambahkan riwayat chat di sini)
-            // Untuk sekarang, kita kirim single-turn (satu tanya satu jawab) dulu.
+            // --- DEBUG START ---
+            Log::info('TOTAL Panjang Pesan Sistem ke Groq (Karakter): ' . strlen($fullSystemMessage));
+            Log::info('=== CHATBOT DEBUG END ===');
+            // --- DEBUG END ---
+
+            // 3b. Susun array pesan untuk Groq
+            // TODO: Nanti bisa ditambahkan riwayat chat sebelumnya di sini agar lebih "nyambung"
             $messages = [
                 [
                     'role' => 'system',
@@ -176,24 +251,85 @@ EOT;
                 ]
             ];
 
-            // 6. Kirim ke Groq
+            // 4. Kirim ke Groq Service
+            // Menggunakan model 'llama-3.1-8b-instant' (sesuai .env Anda) sangat disarankan.
             $aiResponseText = $this->groqService->chat($messages);
 
-            // 7. Kembalikan respons bersih untuk Frontend
+            // 5. Kembalikan respons sukses ke Frontend
             return response()->json([
                 'status' => 'success',
-                'message' => $aiResponseText, // Hanya teks jawaban AI yang kita butuhkan di UI
+                'message' => $aiResponseText,
+                // Uncomment untuk debug di console browser
+                // 'debug_keywords' => $keywords, 
             ]);
 
         } catch (\Exception $e) {
-            // Log error untuk developer
-            \Log::error('Chatbot Error: ' . $e->getMessage());
+            Log::error('Chatbot Error: ' . $e->getMessage());
             
-            // Kembalikan pesan error yang ramah untuk pengguna
+            // Tangani Rate Limit (429) secara khusus
+            if (str_contains($e->getMessage(), '429')) {
+                 return response()->json([
+                    'status' => 'error',
+                    'message' => 'Waduh, antrean si Pentas lagi penuh nih. Mohon tunggu sekitar 1 menit ya, nanti coba kirim pesannya lagi. 🙏'
+                ], 429);
+            }
+            
+            // Error umum lainnya
             return response()->json([
                 'status' => 'error',
-                'message' => 'Maaf, SiPentas sedang mengalami gangguan sesaat. Mohon coba beberapa saat lagi.'
+                'message' => 'Maaf, terjadi gangguan koneksi sesaat. Silakan coba kirim pesan Anda lagi.'
             ], 500);
         }
+    }
+
+    /**
+     * FUNGSI BARU: Mengambil data layanan yang HANYA relevan dengan kata kunci.
+     */
+    private function getFilteredKnowledgeBase(array $keywords)
+    {
+        // Mulai query
+        $query = Layanan::with(['dokumenWajib', 'alurProses'])
+            ->where('status', 'aktif');
+
+        // Tambahkan kondisi pencarian (WHERE ... LIKE ...)
+        $query->where(function ($q) use ($keywords) {
+            foreach ($keywords as $word) {
+                // Cari di nama layanan ATAU deskripsinya
+                $q->orWhere('nama_layanan', 'like', "%{$word}%")
+                    ->orWhere('deskripsi', 'like', "%{$word}%");
+            }
+        });
+
+        // Ambil hasilnya
+        $relevantLayanan = $query->get();
+
+        if ($relevantLayanan->isEmpty()) {
+            return ""; // Tidak ada yang cocok
+        }
+
+        // Format menjadi string (sama seperti sebelumnya)
+        $contextString = "BERIKUT DATA LAYANAN YANG RELEVAN:\n\n";
+        foreach ($relevantLayanan as $index => $layanan) {
+            $num = $index + 1;
+            $contextString .= "=== LAYANAN {$num}: {$layanan->nama_layanan} ===\n";
+            $contextString .= "Deskripsi: {$layanan->deskripsi}\n";
+            $contextString .= "Estimasi Waktu: {$layanan->estimasi_proses}\n";
+            // ... (kode format dokumenWajib dan alurProses sama seperti sebelumnya, hemat tempat di sini)
+            // PASTIKAN ANDA MENYALIN KODE FORMAT LENGKAP DARI CONTROLLER LAMA ANDA KE SINI
+            $contextString .= "[Persyaratan Dokumen Wajib]\n";
+            foreach ($layanan->dokumenWajib as $dokumen) {
+                $contextString .= "- {$dokumen->deskripsi_dokumen}\n";
+            }
+            $contextString .= "\n";
+
+            $contextString .= "[Alur Proses]\n";
+            foreach ($layanan->alurProses as $i => $alur) {
+                $step = $i + 1;
+                $contextString .= "{$step}. {$alur->deskripsi_alur}\n";
+            }
+            $contextString .= "\n--------------------------------------------------\n\n";
+        }
+
+        return $contextString;
     }
 }
