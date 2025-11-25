@@ -14,7 +14,8 @@ use App\Notifications\BookingBaruNotification;
 use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon; // Pastikan ini di-import untuk format tanggal
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Mail; // Import Facade Mail
+use App\Mail\BookingSuccessMail;     // Import Mailable yang kita buat
 
 class BookingController extends Controller
 {
@@ -271,10 +272,23 @@ class BookingController extends Controller
 
             DB::commit(); 
 
-            // Kirim notifikasi ke SEMUA 'petugas_layanan' dan 'super_admin'
-            $admins = User::whereIn('role', ['super_admin', 'petugas_layanan'])->get();
-            Notification::send($admins, new BookingBaruNotification($booking));
             // ===============================================
+            // <<< KIRIM EMAIL NOTIFIKASI KE WARGA >>>
+            // ===============================================
+            try {
+                // Pastikan warga punya email sebelum mencoba mengirim
+                if (!empty($booking->warga->email)) {
+                    // Kirim email ke alamat email warga
+                    Mail::to($booking->warga->email)->send(new BookingSuccessMail($booking));
+                    // Log sukses (opsional)
+                    \Log::info('Email booking berhasil dikirim ke: ' . $booking->warga->email);
+                }
+            } catch (\Exception $e) {
+                // PENTING: Jangan biarkan error email membatalkan booking!
+                // Kita tangkap errornya, catat di log, tapi biarkan proses lanjut.
+                \Log::error('Gagal mengirim email booking: ' . $e->getMessage());
+                // Opsional: bisa tambahkan flash message warning bahwa email gagal, tapi booking sukses.
+            }
             
             // 8. Bersihkan Session Booking
             Session::forget('booking');
