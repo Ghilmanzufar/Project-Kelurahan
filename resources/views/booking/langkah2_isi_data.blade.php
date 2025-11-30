@@ -140,19 +140,30 @@
                                    value="{{ old('nomor_hp', Session::get('booking.no_hp')) }}" required>
                             @error('nomor_hp')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
-                        <p class="mt-2 text-xs text-gray-500">(Kami akan mengirimkan notifikasi booking ke nomor ini)</p>
                     </div>
 
-                    {{-- Email --}}
+                    {{-- Input Email (BARU - WAJIB DIISI) --}}
                     <div>
-                        <label for="email" class="block text-sm font-medium leading-6 text-gray-900">Alamat Email (Opsional)</label>
-                        <div class="mt-2">
-                            <input type="email" name="email" id="email" autocomplete="email"
-                                   class="block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                                   placeholder="Contoh: nama@email.com" 
-                                   value="{{ old('email', Session::get('booking.email')) }}">
-                            @error('email')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+                        <label for="email" class="block text-sm font-medium text-gray-700">
+                            {{-- Ubah label jadi ada bintang merah --}}
+                            Alamat Email <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+                            {{-- Tambahkan 'required' di sini --}}
+                            <input type="email" name="email" id="email" value="{{ old('email', $existingData['email'] ?? '') }}"
+                                class="focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                                placeholder="contoh@email.com" required>
                         </div>
+                        {{-- Update sedikit teks helpernya agar lebih tegas --}}
+                        <p class="mt-1 text-xs text-gray-500">Wajib diisi untuk menerima bukti booking dan QR Code.</p>
+                        @error('email')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                     
                     {{-- Alamat --}}

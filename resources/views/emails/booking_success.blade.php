@@ -28,8 +28,8 @@
                 <div class="booking-code">{{ $booking->no_booking }}</div>
 
                 {{-- QR Code (Akan kita lampirkan sebagai gambar) --}}
-                <div class="qr-code">
-                    <img src="{{ $message->embedData(QrCode::format('png')->size(200)->generate($booking->no_booking), 'qrcode.png', 'image/png') }}" alt="QR Code Booking">
+                <div style="display: inline-block; padding: 10px; background: white;">
+                    {!! QrCode::size(200)->generate($booking->no_booking) !!}
                 </div>
 
                 <p style="margin-top: 10px;"><strong>Layanan:</strong> {{ $booking->layanan->nama_layanan }}</p>
