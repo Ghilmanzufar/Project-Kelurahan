@@ -23,17 +23,21 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
+    // 1. Menampilkan form "Lupa Password" (masukkan email)
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');
 
+    // 2. Memproses pengiriman email
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
                 ->name('password.email');
 
+    // 3. Menampilkan form "Reset Password" (setelah klik link di email)
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
                 ->name('password.reset');
 
+    // 4. Memproses penyimpanan password baru
     Route::post('reset-password', [NewPasswordController::class, 'store'])
-                ->name('password.store');
+                ->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {

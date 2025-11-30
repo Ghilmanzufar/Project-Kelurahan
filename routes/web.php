@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\WargaController;
 use App\Http\Controllers\BantuanController;
 use App\Http\Controllers\ChatbotController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,6 +71,8 @@ Route::prefix('booking')->name('booking.')->group(function () {
     Route::get('/check-kuota/{layanan_id}/{tanggal}', [BookingController::class, 'checkKuota'])->name('checkKuota');
     Route::get('/get-petugas/{layanan_id}', [BookingController::class, 'getPetugas'])->name('getPetugas');
 });
+
+
 
 
 // Rute Lacak Pengajuan

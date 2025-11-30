@@ -14,34 +14,13 @@
 
     {{-- PESAN YANG ANDA MINTA UNTUK DIUBAH --}}
     <div class="mb-8 text-sm text-gray-600 text-center">
-        {{ __('Jika Anda lupa kata sandi akun petugas Anda, silakan masukkan alamat email yang terdaftar. Sistem akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.') }}
-        <br><br>
-        <span class="font-medium text-primary-700">
-            {{ __('Atau hubungi Super Admin jika Anda mengalami kendala teknis.') }}
-        </span>
+        {{ __('Jika Anda lupa kata sandi dan mengalami kendala teknis, silakan hubungi Super Admin') }}
     </div>
-
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form method="POST" action="{{ route('password.email') }}">
-        @csrf
-
-        <div>
-            <x-input-label for="email" :value="__('Alamat Email Terdaftar')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus placeholder="contoh: petugas@kel-klender.go.id" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-6">
-            <x-primary-button class="w-full justify-center bg-primary-600 hover:bg-primary-700">
-                {{ __('Kirim Tautan Reset Password') }}
-            </x-primary-button>
-        </div>
-        
-        <div class="mt-6 text-center">
+    <div class="mt-6 text-center">
             <a href="{{ route('login') }}" class="text-sm font-semibold leading-6 text-primary-600 hover:text-primary-500">
                 &larr; Kembali ke Halaman Login
             </a>
-        </div>
-    </form>
+    </div>
+
+    <x-auth-session-status class="mb-4" :status="session('status')" />
 </x-guest-layout>
