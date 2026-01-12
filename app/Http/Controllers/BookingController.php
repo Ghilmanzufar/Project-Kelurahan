@@ -17,6 +17,8 @@ use Carbon\Carbon; // Pastikan ini di-import untuk format tanggal
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail; // Import Facade Mail
 use App\Mail\BookingSuccessMail;     // Import Mailable yang kita buat
+use Barryvdh\DomPDF\Facade\Pdf; // Import PDF Facade
+use SimpleSoftwareIO\QrCode\Facades\QrCode; // Pastikan QrCode ada
 
 class BookingController extends Controller
 {
@@ -179,14 +181,20 @@ class BookingController extends Controller
      */
     public function showStep3()
     {
-        // Pastikan semua data yang dibutuhkan sudah ada di session
+        // 1. Pastikan session ada
         if (!Session::has('booking.layanan_id') || !Session::has('booking.nama_lengkap')) {
             return redirect()->route('beranda')->with('error', 'Silakan lengkapi langkah-langkah sebelumnya.');
         }
 
+        // 2. Ambil data session
         $bookingData = Session::get('booking');
 
-        return view('booking.langkah3_konfirmasi', compact('bookingData'));
+        // 3. AMBIL DATA LAYANAN + DOKUMEN WAJIB DARI DATABASE (Kode Baru)
+        // Kita gunakan 'with' agar query lebih efisien (Eager Loading)
+        $layanan = Layanan::with('dokumenWajib')->find($bookingData['layanan_id']);
+
+        // 4. Kirim data ke view (tambahkan 'layanan')
+        return view('booking.langkah3_konfirmasi', compact('bookingData', 'layanan'));
     }
 
     /**
@@ -292,10 +300,16 @@ class BookingController extends Controller
             }
             
             // 8. Bersihkan Session Booking
-            Session::forget('booking');
+            
 
             // 9. Redirect ke Halaman Sukses
-            return redirect()->route('booking.success', ['no_booking' => $noBooking]);
+            // Kita kirimkan variabel-variabel pecahan yang dibutuhkan oleh view
+            return view('booking.langkah4_sukses', [
+                'booking'        => $booking,
+                'nomorBooking'   => $booking->no_booking,
+                'emailPemohon'   => $booking->warga->email,
+                'nomorHpPemohon' => $booking->warga->no_hp
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack(); 
@@ -323,4 +337,18 @@ class BookingController extends Controller
 
             return view('booking.langkah4_sukses', compact('booking', 'nomorBooking', 'emailPemohon', 'nomorHpPemohon'));
         }
+    public function downloadPdf($id)
+    {
+        // 1. Cari data booking berdasarkan ID
+        $booking = Booking::with(['warga', 'layanan'])->findOrFail($id);
+
+        // 2. Load view PDF yang tadi kita buat dan masukkan datanya
+        $pdf = Pdf::loadView('pdf.bukti_booking', compact('booking'));
+
+        // 3. Setup ukuran kertas (opsional, default A4)
+        $pdf->setPaper('a5', 'portrait'); // A5 cukup untuk tiket
+
+        // 4. Download file
+        return $pdf->download('Tiket-SiPentas-'.$booking->no_booking.'.pdf');
+    }
 }

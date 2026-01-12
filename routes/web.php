@@ -44,7 +44,7 @@ Route::post('/chat/send', [ChatbotController::class, 'sendMessage'])->name('chat
 // Rute Layanan
 Route::get('/layanan', [LayananController::class, 'index'])->name('layanan.index');
 Route::get('/layanan/{layanan}', [LayananController::class, 'show'])->name('layanan.show');
-
+Route::get('/booking/download-pdf/{id}', [BookingController::class, 'downloadPdf'])->name('booking.pdf');
 // Rute Booking (Pendaftaran Layanan)
 Route::prefix('booking')->name('booking.')->group(function () {
     // <<< TAMBAHKAN RUTE INI DI PALING ATAS >>>
@@ -67,6 +67,7 @@ Route::prefix('booking')->name('booking.')->group(function () {
     // <<< --------------------------------- >>>
     Route::get('/success/{no_booking}', [BookingController::class, 'showSuccess'])->name('success');
     
+
     // (Opsional, jika fitur ini ada)
     Route::get('/check-kuota/{layanan_id}/{tanggal}', [BookingController::class, 'checkKuota'])->name('checkKuota');
     Route::get('/get-petugas/{layanan_id}', [BookingController::class, 'getPetugas'])->name('getPetugas');
